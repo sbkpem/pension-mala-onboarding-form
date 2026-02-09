@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -154,7 +153,7 @@
                     <div class="form-group">
                         <label>קוד מוסד במס"ב *</label>
                         <select id="has_masav_code" onchange="toggleMasavFields()">
-                            <option value="">נא לבחור</option>
+                            <option value="" disabled selected hidden>נא לבחור</option>
                             <option value="yes">כן</option>
                             <option value="no">לא</option>
                         </select>
@@ -224,7 +223,7 @@
                     <div class="form-group">
                         <label>אופן תשלום לקופות *</label>
                         <select id="payment_method_to_funds">
-                            <option value="">נא לבחור</option>
+                            <option value="" disabled selected hidden>נא לבחור</option>
                             <option value="bank_transfer">העברה בנקאית</option>
                             <option value="masav">מס"ב</option>
                             <option value="interface_authorization">הרשאה לחיוב חשבון לפי ממשק</option>
@@ -236,7 +235,7 @@
                             <div class="form-group">
                                 <label>בנק *</label>
                                 <select id="bank_name">
-                                    <option value="">נא לבחור</option>
+                                    <option value="" disabled selected hidden>נא לבחור</option>
                                     <option value="10">10 - בנק לאומי</option>
                                     <option value="11">11 - בנק דיסקונט</option>
                                     <option value="12">12 - בנק הפועלים</option>
@@ -265,7 +264,7 @@
                     <div class="form-group">
                         <label>חודש שכר לתחילת השירות</label>
                         <select id="salary_start_month">
-                            <option value="">נא לבחור</option>
+                            <option value="" disabled selected hidden>נא לבחור</option>
                             <option value="current">נוכחי</option>
                             <option value="current_retro">נוכחי + רטרו</option>
                         </select>
@@ -273,7 +272,7 @@
                     <div class="form-group">
                         <label>אופן תשלום לפנסיון מלא</label>
                         <select id="payment_choice">
-                            <option value="">נא לבחור</option>
+                            <option value="" disabled selected hidden>נא לבחור</option>
                             <option value="credit_card">כרטיס אשראי</option>
                             <option value="bank_debit">הוראת קבע בנקאית</option>
                         </select>
@@ -285,7 +284,7 @@
                     <div class="form-group">
                         <label>מבנה חתימה *</label>
                         <select id="signature_structure" onchange="toggleSigner2()">
-                            <option value="">נא לבחור</option>
+                            <option value="" disabled selected hidden>נא לבחור</option>
                             <option value="one_signer">חותם יחיד</option>
                             <option value="two_signers">שני חותמים</option>
                         </select>
@@ -350,7 +349,7 @@
             </div>
         </div>
 
-        <p class="footer">© 2025 פנסיון מלא - כל הזכויות שמורות</p>
+        <p class="footer">© 2026 פנסיון מלא - כל הזכויות שמורות</p>
     </div>
 </div>
 
@@ -531,4 +530,3 @@ async function submitForm() {
 
 </body>
 </html>
-
