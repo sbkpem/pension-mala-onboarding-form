@@ -1,356 +1,533 @@
+
 <!DOCTYPE html>
-<html dir="rtl" lang="he">
+<html lang="he" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>טופס הצטרפות - פנסיון מלא</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #eff6ff, #e0e7ff); min-height: 100vh; padding: 2rem 1rem; direction: rtl; }
-  .container { max-width: 720px; margin: 0 auto; }
-  .header { text-align: center; margin-bottom: 2rem; }
-  .header .icon { width: 64px; height: 64px; background: #2563eb; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem; box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
-  .header .icon svg { width: 32px; height: 32px; color: white; fill: none; stroke: currentColor; stroke-width: 2; }
-  .header h1 { font-size: 1.75rem; color: #111827; margin-bottom: 0.5rem; }
-  .header p { color: #6b7280; }
-  .steps { display: flex; justify-content: space-between; margin-bottom: 2rem; padding: 0 1rem; }
-  .step { display: flex; flex-direction: column; align-items: center; flex: 1; }
-  .step-circle { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem; transition: all 0.3s; }
-  .step-circle.active { background: #2563eb; color: white; box-shadow: 0 2px 8px rgba(37,99,235,0.3); }
-  .step-circle.inactive { background: #e5e7eb; color: #9ca3af; }
-  .step-label { font-size: 0.75rem; color: #6b7280; text-align: center; }
-  .step-label.active { color: #2563eb; font-weight: 500; }
-  .card { background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; }
-  .card-header { background: linear-gradient(to left, #eff6ff, #dbeafe); padding: 1.25rem 1.5rem; border-bottom: 1px solid #e5e7eb; }
-  .card-header h2 { color: #1e3a5f; font-size: 1.125rem; }
-  .card-header .subtitle { color: #6b7280; font-size: 0.875rem; margin-top: 0.25rem; }
-  .card-body { padding: 1.5rem; }
-  .form-group { margin-bottom: 1rem; }
-  .form-group label { display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.375rem; }
-  .form-group label .required { color: #ef4444; }
-  .form-group input, .form-group select { width: 100%; padding: 0.625rem 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.875rem; font-family: inherit; transition: border-color 0.2s; direction: rtl; }
-  .form-group input:focus, .form-group select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
-  @media (max-width: 640px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
-  .section { background: #f9fafb; padding: 1rem; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 1rem; }
-  .section.blue { background: #eff6ff; border-color: #bfdbfe; }
-  .section h3 { font-size: 0.9375rem; font-weight: 600; margin-bottom: 0.75rem; }
-  .section.blue h3 { color: #1e3a5f; }
-  .checkbox-group { display: flex; align-items: flex-start; gap: 0.75rem; padding: 1rem; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; margin-top: 1rem; }
-  .checkbox-group input[type="checkbox"] { width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; accent-color: #2563eb; }
-  .checkbox-group label { font-size: 0.875rem; color: #78350f; line-height: 1.5; cursor: pointer; }
-  .buttons { display: flex; justify-content: space-between; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb; }
-  .btn { padding: 0.625rem 1.5rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500; cursor: pointer; border: none; font-family: inherit; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-outline { background: white; border: 1px solid #d1d5db; color: #374151; }
-  .btn-outline:hover:not(:disabled) { background: #f9fafb; }
-  .btn-primary { background: #2563eb; color: white; }
-  .btn-primary:hover:not(:disabled) { background: #1d4ed8; }
-  .btn-success { background: #16a34a; color: white; }
-  .btn-success:hover:not(:disabled) { background: #15803d; }
-  .error-box { display: flex; align-items: center; gap: 0.5rem; padding: 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #b91c1c; font-size: 0.875rem; margin-top: 1rem; }
-  .success-screen { text-align: center; padding: 3rem 2rem; }
-  .success-screen .check { width: 80px; height: 80px; background: #dcfce7; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; }
-  .success-screen .check svg { width: 48px; height: 48px; color: #16a34a; fill: none; stroke: currentColor; stroke-width: 2; }
-  .success-screen h2 { font-size: 1.5rem; color: #111827; margin-bottom: 1rem; }
-  .success-screen p { color: #6b7280; margin-bottom: 0.5rem; }
-  .hidden { display: none !important; }
-  .footer { text-align: center; margin-top: 1.5rem; font-size: 0.875rem; color: #9ca3af; }
-  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>טופס הצטרפות - פנסיון מלא</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #eff6ff, #e0e7ff);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            direction: rtl;
+        }
+        .container { max-width: 720px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 2rem; }
+        .header img { height: 80px; margin-bottom: 1rem; }
+        .header h1 { font-size: 1.75rem; color: #111827; margin-bottom: 0.5rem; }
+        .header p { color: #6b7280; }
+        .steps { display: flex; justify-content: space-between; margin-bottom: 2rem; padding: 0 1rem; }
+        .step { display: flex; flex-direction: column; align-items: center; flex: 1; }
+        .step-circle {
+            width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            background: #e5e7eb; color: #6b7280; font-weight: 600; margin-bottom: 0.5rem; transition: all 0.3s;
+        }
+        .step-circle.active { background: #2563eb; color: white; box-shadow: 0 2px 8px rgba(37,99,235,0.3); }
+        .step-label { font-size: 0.75rem; text-align: center; color: #6b7280; }
+        .step-label.active { color: #2563eb; font-weight: 500; }
+        .card {
+            background: white; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .card-header {
+            background: linear-gradient(to left, #eff6ff, #dbeafe);
+            padding: 1.25rem 1.5rem; border-bottom: 1px solid #e5e7eb;
+        }
+        .card-header h2 { font-size: 1.25rem; color: #1e3a8a; }
+        .card-header p { font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem; }
+        .card-body { padding: 1.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.375rem; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 0.625rem 0.75rem; border: 1px solid #d1d5db; border-radius: 8px;
+            font-size: 0.875rem; transition: border-color 0.2s; direction: rtl; text-align: right;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+        @media (max-width: 640px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+        .section-box {
+            background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; margin-bottom: 1.25rem;
+        }
+        .section-box.blue { background: #eff6ff; border-color: #bfdbfe; }
+        .section-box h3 { font-size: 0.9375rem; font-weight: 600; margin-bottom: 0.75rem; }
+        .section-box.blue h3 { color: #1e3a8a; }
+        .btn-row { display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb; }
+        .btn {
+            padding: 0.625rem 1.5rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500;
+            cursor: pointer; border: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem;
+        }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover:not(:disabled) { background: #1d4ed8; }
+        .btn-success { background: #16a34a; color: white; }
+        .btn-success:hover:not(:disabled) { background: #15803d; }
+        .btn-outline { background: white; color: #374151; border: 1px solid #d1d5db; }
+        .btn-outline:hover:not(:disabled) { background: #f9fafb; }
+        .error-box {
+            display: flex; align-items: center; gap: 0.5rem; padding: 1rem;
+            background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #b91c1c; margin-top: 1rem;
+        }
+        .success-screen {
+            text-align: center; padding: 3rem 2rem; background: white; border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08); max-width: 480px; margin: 4rem auto;
+        }
+        .success-icon {
+            width: 80px; height: 80px; background: #dcfce7; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;
+        }
+        .success-icon svg { width: 48px; height: 48px; color: #16a34a; }
+        .hidden { display: none; }
+        .footer { text-align: center; font-size: 0.8rem; color: #9ca3af; margin-top: 1.5rem; }
+        .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.6s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
 </head>
 <body>
 
 <div class="container">
-  <!-- Header -->
-  <div class="header">
-    <div class="icon">
-      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <!-- Success Screen -->
+    <div id="successScreen" class="success-screen hidden">
+        <div class="success-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </div>
+        <h2 style="font-size:1.5rem;color:#111827;margin-bottom:1rem;">הטופס נשלח בהצלחה!</h2>
+        <p style="color:#6b7280;margin-bottom:0.5rem;">תודה על פנייתכם! קיבלנו את פרטי ההצטרפות. מסמכי ההצטרפות יועברו לחתימת מורשי החתימה שלכם בהקדם.</p>
+        <p style="font-size:0.875rem;color:#9ca3af;">צוות פנסיון מלא</p>
     </div>
-    <h1>טופס הצטרפות לפנסיון מלא</h1>
-    <p>מלאו את הפרטים להצטרפות לשירותי תפעול פנסיוני</p>
-  </div>
 
-  <!-- Steps indicator -->
-  <div class="steps">
-    <div class="step"><div class="step-circle active" id="sc1">1</div><div class="step-label active" id="sl1">פרטי החברה</div></div>
-    <div class="step"><div class="step-circle inactive" id="sc2">2</div><div class="step-label" id="sl2">אנשי קשר</div></div>
-    <div class="step"><div class="step-circle inactive" id="sc3">3</div><div class="step-label" id="sl3">פרטי תשלום</div></div>
-    <div class="step"><div class="step-circle inactive" id="sc4">4</div><div class="step-label" id="sl4">מורשי חתימה</div></div>
-  </div>
+    <!-- Main Form -->
+    <div id="mainForm">
+        <div class="header">
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/684b22e06236d9fe79c43c9f/7669b86da_.png" alt="פנסיון מלא" />
+            <h1>טופס הצטרפות לפנסיון מלא</h1>
+            <p>מלאו את הפרטים להצטרפות לשירותי תפעול פנסיוני</p>
+        </div>
 
-  <!-- Success screen (hidden initially) -->
-  <div class="card hidden" id="successScreen">
-    <div class="success-screen">
-      <div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-      <h2>הטופס נשלח בהצלחה!</h2>
-      <p>תודה על פנייתכם! קיבלנו את פרטי ההצטרפות.</p>
-      <p>מסמכי ההצטרפות יועברו לחתימת מורשי החתימה שלכם בהקדם.</p>
-      <p style="margin-top:1rem;font-size:0.8rem;color:#9ca3af;">צוות פנסיון מלא</p>
+        <div class="steps">
+            <div class="step"><div class="step-circle active" id="stepCircle1">1</div><span class="step-label active" id="stepLabel1">פרטי החברה</span></div>
+            <div class="step"><div class="step-circle" id="stepCircle2">2</div><span class="step-label" id="stepLabel2">אנשי קשר</span></div>
+            <div class="step"><div class="step-circle" id="stepCircle3">3</div><span class="step-label" id="stepLabel3">פרטי תשלום</span></div>
+            <div class="step"><div class="step-circle" id="stepCircle4">4</div><span class="step-label" id="stepLabel4">מורשי חתימה</span></div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 id="stepTitle">פרטי החברה</h2>
+                <p id="stepDesc">שלב 1 מתוך 4</p>
+            </div>
+            <div class="card-body">
+
+                <!-- Step 1: פרטי החברה -->
+                <div id="step1">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>שם החברה *</label>
+                            <input type="text" id="company_name" placeholder="שם החברה המלא" />
+                        </div>
+                        <div class="form-group">
+                            <label>ח.פ. / ע.מ. *</label>
+                            <input type="text" id="business_id" placeholder="מספר חברה / עוסק מורשה" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>כתובת *</label>
+                        <input type="text" id="address" placeholder="כתובת מלאה" />
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>טלפון *</label>
+                            <input type="text" id="phone" placeholder="טלפון ראשי" />
+                        </div>
+                        <div class="form-group">
+                            <label>מס' תיק ניכויים *</label>
+                            <input type="text" id="deductions_file_number" placeholder="מספר תיק ניכויים" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>קוד מוסד במס"ב *</label>
+                        <select id="has_masav_code" onchange="toggleMasavFields()">
+                            <option value="">נא לבחור</option>
+                            <option value="yes">כן</option>
+                            <option value="no">לא</option>
+                        </select>
+                    </div>
+                    <div id="masavFields" class="hidden">
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>קוד מוסד במס"ב *</label>
+                                <input type="text" id="institution_code" placeholder="קוד מוסד" />
+                            </div>
+                            <div class="form-group">
+                                <label>שם מוסד במס"ב *</label>
+                                <input type="text" id="institution_name" placeholder="שם המוסד" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: אנשי קשר -->
+                <div id="step2" class="hidden">
+                    <div class="section-box blue">
+                        <h3>איש קשר ראשי *</h3>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>שם מלא *</label>
+                                <input type="text" id="main_contact_name" placeholder="שם איש הקשר" />
+                            </div>
+                            <div class="form-group">
+                                <label>תפקיד</label>
+                                <input type="text" id="main_contact_role" placeholder="תפקיד בחברה" />
+                            </div>
+                            <div class="form-group">
+                                <label>טלפון *</label>
+                                <input type="text" id="main_contact_phone" placeholder="מספר טלפון" />
+                            </div>
+                            <div class="form-group">
+                                <label>אימייל *</label>
+                                <input type="email" id="main_contact_email" placeholder="כתובת אימייל" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-box">
+                        <h3>איש קשר שכר (הנה"ח)</h3>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>שם *</label>
+                                <input type="text" id="payroll_contact_name" placeholder="שם איש קשר שכר" />
+                            </div>
+                            <div class="form-group">
+                                <label>אימייל *</label>
+                                <input type="email" id="payroll_contact_email" placeholder="אימייל שכר" />
+                            </div>
+                            <div class="form-group">
+                                <label>טלפון</label>
+                                <input type="text" id="payroll_contact_phone" placeholder="טלפון איש קשר שכר" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>אימייל לחשבוניות *</label>
+                        <input type="email" id="invoice_email" placeholder="אימייל לקבלת חשבוניות" />
+                    </div>
+                </div>
+
+                <!-- Step 3: פרטי תשלום -->
+                <div id="step3" class="hidden">
+                    <div class="form-group">
+                        <label>אופן תשלום לקופות *</label>
+                        <select id="payment_method_to_funds">
+                            <option value="">נא לבחור</option>
+                            <option value="bank_transfer">העברה בנקאית</option>
+                            <option value="masav">מס"ב</option>
+                            <option value="interface_authorization">הרשאה לחיוב חשבון לפי ממשק</option>
+                        </select>
+                    </div>
+                    <div class="section-box">
+                        <h3>פרטי חשבון בנק *</h3>
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label>בנק *</label>
+                                <select id="bank_name">
+                                    <option value="">נא לבחור</option>
+                                    <option value="10">10 - בנק לאומי</option>
+                                    <option value="11">11 - בנק דיסקונט</option>
+                                    <option value="12">12 - בנק הפועלים</option>
+                                    <option value="13">13 - בנק איגוד</option>
+                                    <option value="14">14 - בנק אוצר החייל</option>
+                                    <option value="17">17 - בנק מרכנתיל דיסקונט</option>
+                                    <option value="20">20 - בנק מזרחי טפחות</option>
+                                    <option value="31">31 - הבנק הבינלאומי</option>
+                                    <option value="34">34 - בנק ערבי ישראלי</option>
+                                    <option value="46">46 - בנק מסד</option>
+                                    <option value="52">52 - בנק פועלי אגודת ישראל</option>
+                                    <option value="54">54 - בנק ירושלים</option>
+                                    <option value="99">99 - בנק ישראל</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>מספר סניף *</label>
+                                <input type="text" id="bank_branch_number" placeholder="מספר סניף" />
+                            </div>
+                            <div class="form-group">
+                                <label>מספר חשבון *</label>
+                                <input type="text" id="bank_account_number" placeholder="מספר חשבון" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>חודש שכר לתחילת השירות</label>
+                        <select id="salary_start_month">
+                            <option value="">נא לבחור</option>
+                            <option value="current">נוכחי</option>
+                            <option value="current_retro">נוכחי + רטרו</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>אופן תשלום לפנסיון מלא</label>
+                        <select id="payment_choice">
+                            <option value="">נא לבחור</option>
+                            <option value="credit_card">כרטיס אשראי</option>
+                            <option value="bank_debit">הוראת קבע בנקאית</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Step 4: מורשי חתימה -->
+                <div id="step4" class="hidden">
+                    <div class="form-group">
+                        <label>מבנה חתימה *</label>
+                        <select id="signature_structure" onchange="toggleSigner2()">
+                            <option value="">נא לבחור</option>
+                            <option value="one_signer">חותם יחיד</option>
+                            <option value="two_signers">שני חותמים</option>
+                        </select>
+                    </div>
+                    <div class="section-box blue">
+                        <h3>מורשה חתימה ראשון *</h3>
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label>שם מלא *</label>
+                                <input type="text" id="signer_1_name" placeholder="שם מורשה חתימה" />
+                            </div>
+                            <div class="form-group">
+                                <label>תעודת זהות *</label>
+                                <input type="text" id="signer_1_id" placeholder="מספר ת.ז." />
+                            </div>
+                            <div class="form-group">
+                                <label>אימייל *</label>
+                                <input type="email" id="signer_1_email" placeholder="אימייל לחתימה" />
+                            </div>
+                        </div>
+                    </div>
+                    <div id="signer2Section" class="section-box hidden">
+                        <h3>מורשה חתימה שני *</h3>
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label>שם מלא *</label>
+                                <input type="text" id="signer_2_name" placeholder="שם מורשה חתימה" />
+                            </div>
+                            <div class="form-group">
+                                <label>תעודת זהות *</label>
+                                <input type="text" id="signer_2_id" placeholder="מספר ת.ז." />
+                            </div>
+                            <div class="form-group">
+                                <label>אימייל *</label>
+                                <input type="email" id="signer_2_email" placeholder="אימייל לחתימה" />
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Honeypot -->
+                    <div style="position:absolute;left:-9999px;" aria-hidden="true">
+                        <label>Website</label>
+                        <input type="text" id="honeypot" tabindex="-1" autocomplete="off" />
+                    </div>
+                </div>
+
+                <div id="errorBox" class="error-box hidden">
+                    <span id="errorText"></span>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-outline" id="prevBtn" onclick="prevStep()" disabled>
+                        הקודם ❯
+                    </button>
+                    <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">
+                        ❮ הבא
+                    </button>
+                    <button class="btn btn-success hidden" id="submitBtn" onclick="submitForm()">
+                        ✓ שלח טופס
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <p class="footer">© 2025 פנסיון מלא - כל הזכויות שמורות</p>
     </div>
-  </div>
-
-  <!-- Form -->
-  <div class="card" id="formCard">
-    <div class="card-header">
-      <h2 id="stepTitle">פרטי החברה</h2>
-      <div class="subtitle" id="stepSubtitle">שלב 1 מתוך 4</div>
-    </div>
-    <div class="card-body">
-      <!-- Step 1: Company Details -->
-      <div id="step1">
-        <div class="grid-2">
-          <div class="form-group"><label>שם החברה <span class="required">*</span></label><input id="company_name" placeholder="שם החברה המלא"></div>
-          <div class="form-group"><label>ח.פ. / ע.מ. <span class="required">*</span></label><input id="business_id" placeholder="9 ספרות" maxlength="9"></div>
-        </div>
-        <div class="form-group"><label>כתובת</label><input id="address" placeholder="כתובת מלאה"></div>
-        <div class="grid-2">
-          <div class="form-group"><label>טלפון</label><input id="phone" placeholder="טלפון ראשי"></div>
-          <div class="form-group"><label>מס' תיק ניכויים</label><input id="deductions_file_number" placeholder="מספר תיק ניכויים"></div>
-        </div>
-        <div class="grid-2">
-          <div class="form-group"><label>קוד מוסד במס"ב</label><input id="institution_code" placeholder="קוד מוסד"></div>
-          <div class="form-group"><label>שם מוסד במס"ב</label><input id="institution_name" placeholder="שם המוסד"></div>
-        </div>
-        <div class="grid-2">
-          <div class="form-group"><label>טווח עובדים</label><select id="employee_count_range"><option value="">בחר טווח</option><option value="1-10">1-10 עובדים</option><option value="11-50">11-50 עובדים</option><option value="51-100">51-100 עובדים</option><option value="101-500">101-500 עובדים</option><option value="500+">מעל 500 עובדים</option></select></div>
-          <div class="form-group"><label>מספר עובדים מדויק</label><input id="employee_count_exact" type="number" placeholder="מספר עובדים"></div>
-        </div>
-      </div>
-
-      <!-- Step 2: Contacts -->
-      <div id="step2" class="hidden">
-        <div class="section blue">
-          <h3>איש קשר ראשי *</h3>
-          <div class="grid-2">
-            <div class="form-group"><label>שם מלא <span class="required">*</span></label><input id="main_contact_name" placeholder="שם איש הקשר"></div>
-            <div class="form-group"><label>תפקיד</label><input id="main_contact_role" placeholder="תפקיד בחברה"></div>
-            <div class="form-group"><label>טלפון</label><input id="main_contact_phone" placeholder="מספר טלפון"></div>
-            <div class="form-group"><label>אימייל <span class="required">*</span></label><input id="main_contact_email" type="email" placeholder="כתובת אימייל"></div>
-          </div>
-        </div>
-        <div class="section">
-          <h3>איש קשר שכר (אופציונלי)</h3>
-          <div class="grid-2">
-            <div class="form-group"><label>שם</label><input id="payroll_contact_name" placeholder="שם איש קשר שכר"></div>
-            <div class="form-group"><label>אימייל</label><input id="payroll_contact_email" type="email" placeholder="אימייל שכר"></div>
-          </div>
-        </div>
-        <div class="form-group"><label>אימייל לחשבוניות <span class="required">*</span></label><input id="invoice_email" type="email" placeholder="אימייל לקבלת חשבוניות"></div>
-      </div>
-
-      <!-- Step 3: Payment -->
-      <div id="step3" class="hidden">
-        <div class="form-group"><label>אופן תשלום לקופות</label><select id="payment_method_to_funds"><option value="">בחר אופן תשלום</option><option value="bank_transfer">העברה בנקאית</option><option value="direct_debit">הוראת קבע</option><option value="interface_authorization">הרשאה לממשק</option></select></div>
-        <div class="section">
-          <h3>פרטי חשבון בנק</h3>
-          <div class="grid-3">
-            <div class="form-group"><label>בנק</label><select id="bank_name"><option value="">בחר בנק</option><option value="10">בנק לאומי</option><option value="11">בנק דיסקונט</option><option value="12">בנק הפועלים</option><option value="13">בנק איגוד</option><option value="14">בנק אוצר החייל</option><option value="17">בנק מרכנתיל דיסקונט</option><option value="20">בנק מזרחי טפחות</option><option value="31">הבנק הבינלאומי</option><option value="34">בנק ערבי ישראלי</option><option value="46">בנק מסד</option><option value="52">בנק פועלי אגודת ישראל</option><option value="54">בנק ירושלים</option></select></div>
-            <div class="form-group"><label>מספר סניף</label><input id="bank_branch_number" placeholder="מספר סניף"></div>
-            <div class="form-group"><label>מספר חשבון</label><input id="bank_account_number" placeholder="מספר חשבון"></div>
-          </div>
-        </div>
-        <div class="form-group"><label>תאריך סליקה ראשון</label><input id="first_clearing_date" type="date"></div>
-        <div class="form-group"><label>אופן תשלום לפנסיון מלא</label><select id="payment_choice"><option value="">בחר אופן תשלום</option><option value="credit_card">כרטיס אשראי</option><option value="bank_debit">הוראת קבע בנקאית</option></select></div>
-      </div>
-
-      <!-- Step 4: Signers -->
-      <div id="step4" class="hidden">
-        <div class="form-group"><label>מבנה חתימה</label><select id="signature_structure" onchange="toggleSigner2()"><option value="one_signer">חותם יחיד</option><option value="two_signers">שני חותמים</option></select></div>
-        <div class="section blue">
-          <h3>מורשה חתימה ראשון *</h3>
-          <div class="grid-3">
-            <div class="form-group"><label>שם מלא <span class="required">*</span></label><input id="signer_1_name" placeholder="שם מורשה חתימה"></div>
-            <div class="form-group"><label>תעודת זהות <span class="required">*</span></label><input id="signer_1_id" placeholder="מספר ת.ז." maxlength="9"></div>
-            <div class="form-group"><label>אימייל <span class="required">*</span></label><input id="signer_1_email" type="email" placeholder="אימייל לחתימה"></div>
-          </div>
-        </div>
-        <div class="section hidden" id="signer2Section">
-          <h3>מורשה חתימה שני</h3>
-          <div class="grid-3">
-            <div class="form-group"><label>שם מלא</label><input id="signer_2_name" placeholder="שם מורשה חתימה"></div>
-            <div class="form-group"><label>תעודת זהות</label><input id="signer_2_id" placeholder="מספר ת.ז." maxlength="9"></div>
-            <div class="form-group"><label>אימייל</label><input id="signer_2_email" type="email" placeholder="אימייל לחתימה"></div>
-          </div>
-        </div>
-        <!-- Honeypot -->
-        <div style="position:absolute;left:-9999px;" aria-hidden="true"><input id="hp_website" name="website" tabindex="-1" autocomplete="off"></div>
-        <div class="checkbox-group">
-          <input type="checkbox" id="agreeTerms">
-          <label for="agreeTerms">אני מאשר/ת כי הפרטים שמסרתי נכונים ומדויקים, ואני מסכים/ה לתנאי השירות של פנסיון מלא. *</label>
-        </div>
-        <div class="error-box hidden" id="errorBox"></div>
-      </div>
-
-      <!-- Buttons -->
-      <div class="buttons">
-        <button class="btn btn-outline" id="btnPrev" onclick="prevStep()" disabled>הקודם ←</button>
-        <button class="btn btn-primary" id="btnNext" onclick="nextStep()">→ הבא</button>
-        <button class="btn btn-success hidden" id="btnSubmit" onclick="submitForm()" disabled>שלח טופס ✓</button>
-      </div>
-    </div>
-  </div>
-
-  <p class="footer">© 2025 פנסיון מלא - כל הזכויות שמורות</p>
 </div>
 
 <script>
-// ============================================================
-// IMPORTANT: Replace this URL with your actual webhook URL
-// Go to Dashboard → Code → Functions → onboardingWebhook
-// Copy the function URL and paste it here
-// ============================================================
+// ⚠️ החלף את ה-URL הזה ב-URL של ה-webhook שלך מתוך הדשבורד
 const WEBHOOK_URL = 'https://pension-flow-79c43c9f.base44.app/api/apps/684b22e06236d9fe79c43c9f/functions/onboardingWebhook';
 
 let currentStep = 1;
 const stepTitles = ['פרטי החברה', 'אנשי קשר', 'פרטי תשלום', 'מורשי חתימה'];
 
 function val(id) { return document.getElementById(id)?.value?.trim() || ''; }
-function isEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
-function isBizId(id) { return /^\d{9}$/.test(id); }
-function isPhone(p) { return /^0\d{9}$/.test(p.replace(/[-\s]/g, '')); }
-function isIsraeliId(id) {
-  if (!id || !/^\d{5,9}$/.test(id)) return false;
-  const p = id.padStart(9, '0');
-  let s = 0;
-  for (let i = 0; i < 9; i++) { let d = parseInt(p[i]) * ((i % 2) + 1); if (d > 9) d -= 9; s += d; }
-  return s % 10 === 0;
+
+function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+function isValidBusinessId(id) { return /^\d{9}$/.test(id); }
+function isValidPhone(p) { return /^0\d{9}$/.test(p.replace(/[-\s]/g, '')); }
+function isValidIsraeliId(id) {
+    if (!id || !/^\d{5,9}$/.test(id)) return false;
+    const p = id.padStart(9, '0');
+    let s = 0;
+    for (let i = 0; i < 9; i++) { let d = parseInt(p[i]) * ((i % 2) + 1); if (d > 9) d -= 9; s += d; }
+    return s % 10 === 0;
 }
 
-function showError(msg) {
-  const box = document.getElementById('errorBox');
-  box.textContent = '⚠ ' + msg;
-  box.classList.remove('hidden');
-}
-function hideError() { document.getElementById('errorBox').classList.add('hidden'); }
-
-function validateStep(step) {
-  switch(step) {
-    case 1:
-      if (!val('company_name') || !val('business_id')) return 'יש למלא שם חברה וח.פ.';
-      if (!isBizId(val('business_id'))) return 'ח.פ. לא תקין - נדרשים 9 ספרות';
-      if (val('phone') && !isPhone(val('phone'))) return 'מספר טלפון לא תקין';
-      return null;
-    case 2:
-      if (!val('main_contact_name') || !val('main_contact_email') || !val('invoice_email')) return 'יש למלא שם, אימייל איש קשר ואימייל חשבוניות';
-      if (!isEmail(val('main_contact_email'))) return 'אימייל איש קשר לא תקין';
-      if (!isEmail(val('invoice_email'))) return 'אימייל חשבוניות לא תקין';
-      if (val('payroll_contact_email') && !isEmail(val('payroll_contact_email'))) return 'אימייל שכר לא תקין';
-      if (val('main_contact_phone') && !isPhone(val('main_contact_phone'))) return 'טלפון איש קשר לא תקין';
-      return null;
-    case 3:
-      return null;
-    case 4:
-      if (!val('signer_1_name') || !val('signer_1_id') || !val('signer_1_email')) return 'יש למלא את פרטי מורשה חתימה ראשון';
-      if (!isIsraeliId(val('signer_1_id'))) return 'ת.ז. של מורשה חתימה ראשון לא תקינה';
-      if (!isEmail(val('signer_1_email'))) return 'אימייל מורשה חתימה ראשון לא תקין';
-      if (val('signature_structure') === 'two_signers') {
-        if (val('signer_2_id') && !isIsraeliId(val('signer_2_id'))) return 'ת.ז. מורשה חתימה שני לא תקינה';
-        if (val('signer_2_email') && !isEmail(val('signer_2_email'))) return 'אימייל מורשה חתימה שני לא תקין';
-      }
-      if (!document.getElementById('agreeTerms').checked) return 'יש לאשר את התנאים';
-      return null;
-  }
-}
-
-function updateUI() {
-  for (let i = 1; i <= 4; i++) {
-    document.getElementById('step' + i).classList.toggle('hidden', i !== currentStep);
-    document.getElementById('sc' + i).className = 'step-circle ' + (i <= currentStep ? 'active' : 'inactive');
-    document.getElementById('sl' + i).className = 'step-label' + (i <= currentStep ? ' active' : '');
-  }
-  document.getElementById('stepTitle').textContent = stepTitles[currentStep - 1];
-  document.getElementById('stepSubtitle').textContent = 'שלב ' + currentStep + ' מתוך 4';
-  document.getElementById('btnPrev').disabled = currentStep === 1;
-  document.getElementById('btnNext').classList.toggle('hidden', currentStep === 4);
-  document.getElementById('btnSubmit').classList.toggle('hidden', currentStep !== 4);
-  hideError();
-  updateSubmitBtn();
-}
-
-function updateSubmitBtn() {
-  if (currentStep === 4) {
-    const err = validateStep(4);
-    document.getElementById('btnSubmit').disabled = !!err;
-  }
-}
-
-function nextStep() {
-  const err = validateStep(currentStep);
-  if (err) { showError(err); return; }
-  if (currentStep < 4) { currentStep++; updateUI(); }
-}
-
-function prevStep() {
-  if (currentStep > 1) { currentStep--; updateUI(); }
+function toggleMasavFields() {
+    document.getElementById('masavFields').classList.toggle('hidden', val('has_masav_code') !== 'yes');
 }
 
 function toggleSigner2() {
-  const show = val('signature_structure') === 'two_signers';
-  document.getElementById('signer2Section').classList.toggle('hidden', !show);
+    document.getElementById('signer2Section').classList.toggle('hidden', val('signature_structure') !== 'two_signers');
 }
 
-// Listen for changes on step 4 to enable/disable submit
-document.addEventListener('input', updateSubmitBtn);
-document.addEventListener('change', updateSubmitBtn);
+function showError(msg) {
+    document.getElementById('errorText').textContent = msg;
+    document.getElementById('errorBox').classList.remove('hidden');
+}
+function hideError() { document.getElementById('errorBox').classList.add('hidden'); }
+
+function validateCurrentStep() {
+    hideError();
+    switch (currentStep) {
+        case 1:
+            if (!val('company_name') || !val('business_id') || !val('address') || !val('phone') || !val('deductions_file_number')) {
+                showError('יש למלא את כל שדות החובה בעמוד זה'); return false;
+            }
+            if (!isValidBusinessId(val('business_id'))) { showError('מספר ח.פ. לא תקין - נדרשים 9 ספרות'); return false; }
+            if (!isValidPhone(val('phone'))) { showError('מספר טלפון לא תקין - נדרשות 10 ספרות המתחילות ב-0'); return false; }
+            if (!val('has_masav_code')) { showError('יש לבחור האם קיים קוד מוסד במס"ב'); return false; }
+            if (val('has_masav_code') === 'yes' && (!val('institution_code') || !val('institution_name'))) {
+                showError('יש למלא את שדות קוד מוסד ושם מוסד במס"ב'); return false;
+            }
+            return true;
+        case 2:
+            if (!val('main_contact_name') || !val('main_contact_phone') || !val('main_contact_email') || !val('invoice_email')) {
+                showError('יש למלא את כל שדות החובה של איש קשר ראשי ואימייל לחשבוניות'); return false;
+            }
+            if (!isValidPhone(val('main_contact_phone'))) { showError('טלפון איש קשר ראשי לא תקין'); return false; }
+            if (!isValidEmail(val('main_contact_email'))) { showError('אימייל איש קשר ראשי לא תקין'); return false; }
+            if (!val('payroll_contact_name') || !val('payroll_contact_email')) {
+                showError('יש למלא שם ואימייל של איש קשר שכר (הנה"ח)'); return false;
+            }
+            if (!isValidEmail(val('payroll_contact_email'))) { showError('אימייל איש קשר שכר לא תקין'); return false; }
+            if (val('payroll_contact_phone') && !isValidPhone(val('payroll_contact_phone'))) { showError('טלפון איש קשר שכר לא תקין'); return false; }
+            if (!isValidEmail(val('invoice_email'))) { showError('אימייל לחשבוניות לא תקין'); return false; }
+            return true;
+        case 3:
+            if (!val('payment_method_to_funds')) { showError('יש לבחור אופן תשלום לקופות'); return false; }
+            if (!val('bank_name') || !val('bank_branch_number') || !val('bank_account_number')) {
+                showError('יש למלא את כל פרטי חשבון הבנק'); return false;
+            }
+            return true;
+        case 4:
+            if (!val('signature_structure')) { showError('יש לבחור מבנה חתימה'); return false; }
+            if (!val('signer_1_name') || !val('signer_1_id') || !val('signer_1_email')) {
+                showError('יש למלא את כל פרטי מורשה חתימה ראשון'); return false;
+            }
+            if (!isValidIsraeliId(val('signer_1_id'))) { showError('מספר ת.ז. של מורשה חתימה ראשון לא תקין'); return false; }
+            if (!isValidEmail(val('signer_1_email'))) { showError('אימייל של מורשה חתימה ראשון לא תקין'); return false; }
+            if (val('signature_structure') === 'two_signers') {
+                if (!val('signer_2_name') || !val('signer_2_id') || !val('signer_2_email')) {
+                    showError('יש למלא את כל פרטי מורשה חתימה שני'); return false;
+                }
+                if (!isValidIsraeliId(val('signer_2_id'))) { showError('מספר ת.ז. של מורשה חתימה שני לא תקין'); return false; }
+                if (!isValidEmail(val('signer_2_email'))) { showError('אימייל של מורשה חתימה שני לא תקין'); return false; }
+            }
+            return true;
+    }
+    return true;
+}
+
+function updateUI() {
+    for (let i = 1; i <= 4; i++) {
+        document.getElementById('step' + i).classList.toggle('hidden', i !== currentStep);
+        document.getElementById('stepCircle' + i).classList.toggle('active', i <= currentStep);
+        document.getElementById('stepLabel' + i).classList.toggle('active', i <= currentStep);
+    }
+    document.getElementById('stepTitle').textContent = stepTitles[currentStep - 1];
+    document.getElementById('stepDesc').textContent = 'שלב ' + currentStep + ' מתוך 4';
+    document.getElementById('prevBtn').disabled = currentStep === 1;
+    document.getElementById('nextBtn').classList.toggle('hidden', currentStep === 4);
+    document.getElementById('submitBtn').classList.toggle('hidden', currentStep !== 4);
+    hideError();
+}
+
+function nextStep() {
+    if (validateCurrentStep() && currentStep < 4) { currentStep++; updateUI(); }
+}
+function prevStep() {
+    if (currentStep > 1) { currentStep--; updateUI(); }
+}
 
 async function submitForm() {
-  // Honeypot check
-  if (val('hp_website')) {
-    document.getElementById('formCard').classList.add('hidden');
-    document.getElementById('successScreen').classList.remove('hidden');
-    return;
-  }
-
-  const err = validateStep(4);
-  if (err) { showError(err); return; }
-
-  const btn = document.getElementById('btnSubmit');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> שולח...';
-  hideError();
-
-  const data = {};
-  const fields = [
-    'company_name','business_id','address','phone','deductions_file_number',
-    'institution_code','institution_name','employee_count_range','employee_count_exact',
-    'payment_method_to_funds','bank_name','bank_branch_number','bank_account_number',
-    'first_clearing_date','main_contact_name','main_contact_role','main_contact_phone',
-    'main_contact_email','payroll_contact_name','payroll_contact_email','invoice_email',
-    'signature_structure','signer_1_name','signer_1_id','signer_1_email',
-    'signer_2_name','signer_2_id','signer_2_email','payment_choice'
-  ];
-
-  fields.forEach(f => {
-    const v = val(f);
-    if (v) data[f] = f === 'employee_count_exact' ? Number(v) : v;
-  });
-
-  try {
-    const res = await fetch(WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-
-    const result = await res.json();
-
-    if (result.success) {
-      document.getElementById('formCard').classList.add('hidden');
-      document.getElementById('successScreen').classList.remove('hidden');
-    } else {
-      showError(result.error || 'שגיאה בשליחת הטופס');
-      btn.disabled = false;
-      btn.innerHTML = 'שלח טופס ✓';
+    if (val('honeypot')) {
+        document.getElementById('mainForm').classList.add('hidden');
+        document.getElementById('successScreen').classList.remove('hidden');
+        return;
     }
-  } catch (e) {
-    showError('שגיאה בשליחת הטופס. אנא נסו שוב.');
-    btn.disabled = false;
-    btn.innerHTML = 'שלח טופס ✓';
-  }
+
+    if (!validateCurrentStep()) return;
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> שולח...';
+
+    const data = {
+        company_name: val('company_name'),
+        business_id: val('business_id'),
+        address: val('address'),
+        phone: val('phone'),
+        deductions_file_number: val('deductions_file_number'),
+        has_masav_code: val('has_masav_code'),
+        institution_code: val('institution_code'),
+        institution_name: val('institution_name'),
+        payment_method_to_funds: val('payment_method_to_funds'),
+        bank_name: val('bank_name'),
+        bank_branch_number: val('bank_branch_number'),
+        bank_account_number: val('bank_account_number'),
+        salary_start_month: val('salary_start_month'),
+        main_contact_name: val('main_contact_name'),
+        main_contact_role: val('main_contact_role'),
+        main_contact_phone: val('main_contact_phone'),
+        main_contact_email: val('main_contact_email'),
+        payroll_contact_name: val('payroll_contact_name'),
+        payroll_contact_email: val('payroll_contact_email'),
+        payroll_contact_phone: val('payroll_contact_phone'),
+        invoice_email: val('invoice_email'),
+        signature_structure: val('signature_structure'),
+        signer_1_name: val('signer_1_name'),
+        signer_1_id: val('signer_1_id'),
+        signer_1_email: val('signer_1_email'),
+        signer_2_name: val('signer_2_name'),
+        signer_2_id: val('signer_2_id'),
+        signer_2_email: val('signer_2_email'),
+        payment_choice: val('payment_choice'),
+    };
+
+    try {
+        const res = await fetch(WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (result.success) {
+            document.getElementById('mainForm').classList.add('hidden');
+            document.getElementById('successScreen').classList.remove('hidden');
+        } else {
+            showError(result.error || 'שגיאה בשליחת הטופס');
+            btn.disabled = false;
+            btn.innerHTML = '✓ שלח טופס';
+        }
+    } catch (err) {
+        showError('שגיאה בשליחת הטופס. אנא נסו שוב.');
+        btn.disabled = false;
+        btn.innerHTML = '✓ שלח טופס';
+    }
 }
 </script>
+
 </body>
 </html>
