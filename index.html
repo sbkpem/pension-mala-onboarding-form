@@ -419,6 +419,7 @@ function validateCurrentStep() {
             if (!val('bank_name') || !val('bank_branch_number') || !val('bank_account_number')) {
                 showError('יש למלא את כל פרטי חשבון הבנק'); return false;
             }
+            if (!val('payment_choice')) { showError('יש לבחור אופן תשלום לפנסיון מלא'); return false; } // הוסף שורה זו
             return true;
         case 4:
             if (!val('signature_structure')) { showError('יש לבחור מבנה חתימה'); return false; }
@@ -530,3 +531,4 @@ async function submitForm() {
 
 </body>
 </html>
+
