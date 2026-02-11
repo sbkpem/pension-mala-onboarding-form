@@ -292,27 +292,25 @@ async function watermarkDocImages(containerEl, docName) {
     var imgs = containerEl.querySelectorAll('img');
     var urlsToWatermark = [];
     var urlImgElements = [];
-    var dataUriImages = [];
     
     imgs.forEach(function(img) {
         var src = img.getAttribute('src') || '';
         // Skip logos
         if (src.indexOf('logo') !== -1) return;
-        // Skip already watermarked SVGs
-        if (src.startsWith('data:image/svg+xml')) return;
+        // Skip data URIs entirely - SVG watermarks already applied server-side,
+        // and base64 images (png/jpeg) from PM fields are also already watermarked server-side
+        if (src.startsWith('data:')) return;
         // HTTP URLs - batch watermark on server
         if (src.startsWith('http')) {
             urlsToWatermark.push(src);
             urlImgElements.push(img);
         }
-        // Data URI images (base64 png/jpeg) - send individually to server
-        if (src.startsWith('data:image/png') || src.startsWith('data:image/jpeg') || src.startsWith('data:image/jpg')) {
-            dataUriImages.push(img);
-        }
     });
     
     // Batch watermark URL images on server
-    if (urlsToWatermark.length > 0) {
+    if (urlsToWatermark.length === 0) return;
+    
+    try {
         var results = await getServerWatermarkForUrls(urlsToWatermark, docName);
         urlImgElements.forEach(function(img) {
             var originalSrc = img.getAttribute('src');
@@ -320,15 +318,8 @@ async function watermarkDocImages(containerEl, docName) {
                 img.src = results[originalSrc];
             }
         });
-    }
-    
-    // Watermark data URI images individually on server
-    for (var i = 0; i < dataUriImages.length; i++) {
-        var img = dataUriImages[i];
-        var watermarked = await getServerWatermark(img.getAttribute('src'), 'pm_image', docName);
-        if (watermarked) {
-            img.src = watermarked;
-        }
+    } catch (err) {
+        console.log('Batch watermark failed:', err);
     }
 }
 
