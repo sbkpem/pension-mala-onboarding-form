@@ -291,31 +291,45 @@ async function loadDocuments() {
 async function watermarkDocImages(containerEl, docName) {
     var imgs = containerEl.querySelectorAll('img');
     var urlsToWatermark = [];
-    var imgElements = [];
+    var urlImgElements = [];
+    var dataUriImages = [];
     
     imgs.forEach(function(img) {
         var src = img.getAttribute('src') || '';
-        // Skip logos and data URIs (already processed server-side)
+        // Skip logos
         if (src.indexOf('logo') !== -1) return;
-        if (src.startsWith('data:image/svg+xml')) return; // already watermarked SVG
+        // Skip already watermarked SVGs
+        if (src.startsWith('data:image/svg+xml')) return;
+        // HTTP URLs - batch watermark on server
         if (src.startsWith('http')) {
             urlsToWatermark.push(src);
-            imgElements.push(img);
+            urlImgElements.push(img);
+        }
+        // Data URI images (base64 png/jpeg) - send individually to server
+        if (src.startsWith('data:image/png') || src.startsWith('data:image/jpeg') || src.startsWith('data:image/jpg')) {
+            dataUriImages.push(img);
         }
     });
     
-    if (urlsToWatermark.length === 0) return;
+    // Batch watermark URL images on server
+    if (urlsToWatermark.length > 0) {
+        var results = await getServerWatermarkForUrls(urlsToWatermark, docName);
+        urlImgElements.forEach(function(img) {
+            var originalSrc = img.getAttribute('src');
+            if (results[originalSrc]) {
+                img.src = results[originalSrc];
+            }
+        });
+    }
     
-    // Send all URLs to server for batch watermarking
-    var results = await getServerWatermarkForUrls(urlsToWatermark, docName);
-    
-    // Apply watermarked images back
-    imgElements.forEach(function(img) {
-        var originalSrc = img.getAttribute('src');
-        if (results[originalSrc]) {
-            img.src = results[originalSrc];
+    // Watermark data URI images individually on server
+    for (var i = 0; i < dataUriImages.length; i++) {
+        var img = dataUriImages[i];
+        var watermarked = await getServerWatermark(img.getAttribute('src'), 'pm_image', docName);
+        if (watermarked) {
+            img.src = watermarked;
         }
-    });
+    }
 }
 
 function renderReviewStep() {
