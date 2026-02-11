@@ -228,6 +228,7 @@
 const API_BASE = 'https://pension-flow-79c43c9f.base44.app/api/apps/684b22e06236d9fe79c43c9f/functions';
 const GET_DOCS_URL = API_BASE + '/getSigningDocuments';
 const SUBMIT_URL = API_BASE + '/submitSignatures';
+const WATERMARK_URL = API_BASE + '/watermarkImage';
 
 let state = {
     submissionId: null,
@@ -287,6 +288,36 @@ async function loadDocuments() {
     }
 }
 
+async function watermarkDocImages(containerEl, docName) {
+    var imgs = containerEl.querySelectorAll('img');
+    var urlsToWatermark = [];
+    var imgElements = [];
+    
+    imgs.forEach(function(img) {
+        var src = img.getAttribute('src') || '';
+        // Skip logos and data URIs (already processed server-side)
+        if (src.indexOf('logo') !== -1) return;
+        if (src.startsWith('data:image/svg+xml')) return; // already watermarked SVG
+        if (src.startsWith('http')) {
+            urlsToWatermark.push(src);
+            imgElements.push(img);
+        }
+    });
+    
+    if (urlsToWatermark.length === 0) return;
+    
+    // Send all URLs to server for batch watermarking
+    var results = await getServerWatermarkForUrls(urlsToWatermark, docName);
+    
+    // Apply watermarked images back
+    imgElements.forEach(function(img) {
+        var originalSrc = img.getAttribute('src');
+        if (results[originalSrc]) {
+            img.src = results[originalSrc];
+        }
+    });
+}
+
 function renderReviewStep() {
     document.getElementById('companyName').textContent = state.companyData.name;
     
@@ -318,6 +349,9 @@ function renderReviewStep() {
         contentDiv.className = 'doc-content hidden';
         contentDiv.id = 'content-' + doc.id;
         contentDiv.innerHTML = htmlContent;
+
+        // Watermark all images in document content (PM signatures/stamps)
+        watermarkDocImages(contentDiv, docName);
 
         var footerDiv = document.createElement('div');
         footerDiv.className = 'doc-footer hidden';
@@ -474,14 +508,67 @@ function clearCanvas() {
     canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
 }
 
-function saveSignature() {
+async function getServerWatermark(imageData, imageType, docName) {
+    try {
+        var res = await fetch(WATERMARK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                image_data: imageData,
+                image_type: imageType,
+                submission_id: state.submissionId,
+                token: state.token,
+                company_name: state.companyData ? state.companyData.name : '',
+                signer_name: state.signerName || '',
+                document_name: docName || ''
+            })
+        });
+        var data = await res.json();
+        if (data.success && data.watermarked_image) {
+            return data.watermarked_image;
+        }
+        return imageData;
+    } catch (err) {
+        console.log('Server watermark failed, using original:', err);
+        return imageData;
+    }
+}
+
+async function getServerWatermarkForUrls(imageUrls, docName) {
+    try {
+        var res = await fetch(WATERMARK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                image_urls: imageUrls,
+                submission_id: state.submissionId,
+                token: state.token,
+                company_name: state.companyData ? state.companyData.name : '',
+                signer_name: state.signerName || '',
+                document_name: docName || ''
+            })
+        });
+        var data = await res.json();
+        if (data.success && data.watermarked_images) {
+            return data.watermarked_images;
+        }
+        return {};
+    } catch (err) {
+        console.log('Server watermark for URLs failed:', err);
+        return {};
+    }
+}
+
+async function saveSignature() {
     const canvas = document.getElementById('sigCanvas');
     const ctx = canvas.getContext('2d');
     const px = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
     if (!px.some(p => p !== 0)) { alert('יש לחתום לפני השמירה'); return; }
     
     state.signatureData = canvas.toDataURL('image/png');
-    document.getElementById('savedSignatureImg').src = state.signatureData;
+    // Send to server for watermarking, display watermarked preview
+    var wmPreview = await getServerWatermark(state.signatureData, 'signature', '');
+    document.getElementById('savedSignatureImg').src = wmPreview;
     hide('signatureInput');
     show('signatureSaved');
     hide('signatureWarning');
@@ -506,7 +593,7 @@ function setStampMode(mode) {
     else { hide('virtualStampSection'); show('uploadStampSection'); }
 }
 
-function generateVirtualStamp() {
+async function generateVirtualStamp() {
     const cd = state.companyData;
     if (!cd) return;
     
@@ -581,7 +668,8 @@ function generateVirtualStamp() {
     }
     
     state.stampData = canvas.toDataURL('image/png');
-    document.getElementById('savedStampImg').src = state.stampData;
+    var wmPreview = await getServerWatermark(state.stampData, 'stamp', '');
+    document.getElementById('savedStampImg').src = wmPreview;
     hide('stampInput');
     show('stampSaved');
     updateSubmitBtn();
@@ -591,9 +679,10 @@ function handleStampUpload(e) {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
         state.stampData = ev.target.result;
-        document.getElementById('savedStampImg').src = state.stampData;
+        var wmPreview = await getServerWatermark(state.stampData, 'stamp', '');
+        document.getElementById('savedStampImg').src = wmPreview;
         hide('stampInput');
         show('stampSaved');
         updateSubmitBtn();
