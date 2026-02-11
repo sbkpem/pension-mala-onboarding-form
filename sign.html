@@ -3,663 +3,640 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>טופס הצטרפות - פנסיון מלא</title>
+    <title>חתימה על מסמכים - פנסיון מלא</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #eff6ff, #e0e7ff);
-            min-height: 100vh;
-            padding: 2rem 1rem;
-            direction: rtl;
-        }
-        .container { max-width: 720px; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 2rem; }
-        .header img { height: 80px; margin-bottom: 1rem; }
-        .header h1 { font-size: 1.75rem; color: #111827; margin-bottom: 0.5rem; }
-        .header p { color: #6b7280; }
-        .steps { display: flex; justify-content: space-between; margin-bottom: 2rem; padding: 0 1rem; }
-        .step { display: flex; flex-direction: column; align-items: center; flex: 1; }
-        .step-circle {
-            width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            background: #e5e7eb; color: #6b7280; font-weight: 600; margin-bottom: 0.5rem; transition: all 0.3s;
-        }
-        .step-circle.active { background: #2563eb; color: white; box-shadow: 0 2px 8px rgba(37,99,235,0.3); }
-        .step-label { font-size: 0.75rem; text-align: center; color: #6b7280; }
-        .step-label.active { color: #2563eb; font-weight: 500; }
-        .card {
-            background: white; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-            overflow: hidden;
-        }
-        .card-header {
-            background: linear-gradient(to left, #eff6ff, #dbeafe);
-            padding: 1.25rem 1.5rem; border-bottom: 1px solid #e5e7eb;
-        }
-        .card-header h2 { font-size: 1.25rem; color: #1e3a8a; }
-        .card-header p { font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #eff6ff, #e0e7ff); min-height: 100vh; direction: rtl; }
+        .container { max-width: 900px; margin: 0 auto; padding: 1rem; }
+
+        /* Status screens */
+        .status-screen { text-align: center; padding: 3rem 2rem; background: white; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); max-width: 500px; margin: 4rem auto; }
+        .status-icon { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; }
+        .status-icon.loading { background: #dbeafe; }
+        .status-icon.error { background: #fecaca; }
+        .status-icon.success { background: #dcfce7; }
+        .spinner { width: 40px; height: 40px; border: 4px solid rgba(37,99,235,0.2); border-radius: 50%; border-top-color: #2563eb; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Cards */
+        .card { background: white; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 1rem; }
+        .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid #e5e7eb; }
+        .card-header.blue { background: linear-gradient(to left, #eff6ff, #dbeafe); }
+        .card-header.green { background: linear-gradient(to left, #f0fdf4, #dcfce7); }
         .card-body { padding: 1.5rem; }
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.375rem; }
-        .form-group input, .form-group select {
-            width: 100%; padding: 0.625rem 0.75rem; border: 1px solid #d1d5db; border-radius: 8px;
-            font-size: 0.875rem; transition: border-color 0.2s; direction: rtl; text-align: right;
-            background-color: white; color: #111827;
-        }
-        .form-group input:focus, .form-group select:focus {
-            outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
-        }
-        /* Fix 1: placeholder style for select */
-        .form-group select:invalid,
-        .form-group select option[value=""][disabled] {
-            color: #9ca3af;
-        }
-        .form-group select option:not([disabled]) {
-            color: #111827;
-        }
-        /* Fix 2: select arrow positioning */
-        .form-group select {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: left 0.75rem center;
-            background-size: 16px;
-            padding-left: 2.5rem;
-        }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
-        @media (max-width: 640px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
-        .section-box {
-            background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; margin-bottom: 1.25rem;
-        }
-        .section-box.blue { background: #eff6ff; border-color: #bfdbfe; }
-        .section-box h3 { font-size: 0.9375rem; font-weight: 600; margin-bottom: 0.75rem; }
-        .section-box.blue h3 { color: #1e3a8a; }
-        .btn-row { display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb; }
-        .btn {
-            padding: 0.625rem 1.5rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500;
-            cursor: pointer; border: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem;
-        }
+
+        /* Document viewer */
+        .doc-item { border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 0.75rem; overflow: hidden; }
+        .doc-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; cursor: pointer; background: #fafafa; }
+        .doc-header:hover { background: #f3f4f6; }
+        .doc-content { max-height: 400px; overflow-y: auto; padding: 1.5rem; border-top: 1px solid #e5e7eb; direction: rtl; line-height: 1.8; }
+        .doc-content h1, .doc-content h2, .doc-content h3 { color: #1e3a5f; font-weight: 700; }
+        .doc-content h1 { font-size: 1.5rem; text-align: center; border-bottom: 2px solid #3b82f6; padding-bottom: 0.5em; }
+        .doc-content h2 { font-size: 1.2rem; background: linear-gradient(to left, #e0e7ff, #f8fafc); padding: 0.5em 1em; border-radius: 4px; border-right: 4px solid #3b82f6; }
+        .doc-content .ql-align-center { text-align: center; }
+        .doc-content .ql-align-right { text-align: right; }
+        .doc-content .ql-align-left { text-align: left; }
+        .doc-content .ql-align-justify { text-align: justify; }
+        .doc-footer { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-top: 1px solid #e5e7eb; background: #f9fafb; }
+
+        .badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; }
+        .badge-green { background: #dcfce7; color: #166534; }
+        .badge-orange { background: #ffedd5; color: #9a3412; }
+        .badge-blue { background: #dbeafe; color: #1e40af; }
+
+        /* Signature area */
+        .sig-canvas-wrap { border: 2px dashed #d1d5db; border-radius: 8px; background: white; padding: 0.5rem; margin-bottom: 1rem; }
+        .sig-canvas-wrap canvas { width: 100%; cursor: crosshair; touch-action: none; display: block; }
+        .sig-preview { border: 2px solid #86efac; border-radius: 8px; background: #f0fdf4; padding: 1rem; text-align: center; margin-bottom: 1rem; }
+        .sig-preview img { max-height: 80px; }
+
+        /* Stamp area */
+        .stamp-options { display: flex; gap: 0.75rem; margin-bottom: 1rem; }
+        .stamp-btn { flex: 1; padding: 0.625rem; border-radius: 8px; border: 1px solid #d1d5db; background: white; cursor: pointer; font-size: 0.875rem; text-align: center; transition: all 0.2s; }
+        .stamp-btn.active { background: #2563eb; color: white; border-color: #2563eb; }
+        .stamp-btn:hover:not(.active) { background: #f9fafb; }
+        .stamp-info { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+
+        .btn { padding: 0.625rem 1.5rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-primary { background: #2563eb; color: white; }
         .btn-primary:hover:not(:disabled) { background: #1d4ed8; }
-        .btn-success { background: #16a34a; color: white; }
-        .btn-success:hover:not(:disabled) { background: #15803d; }
+        .btn-green { background: #16a34a; color: white; }
+        .btn-green:hover:not(:disabled) { background: #15803d; }
         .btn-outline { background: white; color: #374151; border: 1px solid #d1d5db; }
         .btn-outline:hover:not(:disabled) { background: #f9fafb; }
-        .error-box {
-            display: flex; align-items: center; gap: 0.5rem; padding: 1rem;
-            background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #b91c1c; margin-top: 1rem;
-        }
-        .success-screen {
-            text-align: center; padding: 3rem 2rem; background: white; border-radius: 12px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.08); max-width: 480px; margin: 4rem auto;
-        }
-        .success-icon {
-            width: 80px; height: 80px; background: #dcfce7; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;
-        }
-        .success-icon svg { width: 48px; height: 48px; color: #16a34a; }
-        .hidden { display: none; }
-        .footer { text-align: center; font-size: 0.8rem; color: #9ca3af; margin-top: 1.5rem; }
-        .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.6s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .btn-block { width: 100%; justify-content: center; }
+        .btn-row { display: flex; gap: 0.75rem; margin-top: 1rem; }
 
-        /* File upload area */
-        .file-upload-area {
-            border: 2px dashed #d1d5db; border-radius: 8px; padding: 1.5rem; text-align: center;
-            cursor: pointer; transition: all 0.2s; background: #fafafa;
-        }
+        .hidden { display: none !important; }
+        .warning-box { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 0.75rem 1rem; color: #9a3412; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; }
+
+        .file-upload-area { border: 2px dashed #d1d5db; border-radius: 8px; padding: 1.5rem; text-align: center; cursor: pointer; transition: all 0.2s; }
         .file-upload-area:hover { border-color: #2563eb; background: #eff6ff; }
-        .file-upload-area.uploaded { border-color: #16a34a; background: #f0fdf4; cursor: default; }
         .file-upload-area input[type="file"] { display: none; }
-        .file-upload-icon { width: 32px; height: 32px; margin: 0 auto 0.5rem; color: #9ca3af; }
-        .file-upload-area.uploaded .file-upload-icon { color: #16a34a; }
-        .file-upload-text { font-size: 0.875rem; color: #6b7280; }
-        .file-upload-hint { font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem; }
-        .file-replace-btn {
-            margin-top: 0.5rem; padding: 0.25rem 0.75rem; font-size: 0.75rem; border-radius: 6px;
-            border: 1px solid #d1d5db; background: white; cursor: pointer; color: #374151;
-        }
-        .file-replace-btn:hover { background: #f3f4f6; }
+
+        .check-row { display: flex; align-items: center; gap: 0.5rem; }
+        .check-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: #2563eb; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- Success Screen -->
-    <div id="successScreen" class="success-screen hidden">
-        <div class="success-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-        </div>
-        <h2 style="font-size:1.5rem;color:#111827;margin-bottom:1rem;">הטופס נשלח בהצלחה!</h2>
-        <p style="color:#6b7280;margin-bottom:0.5rem;">תודה על פנייתכם! קיבלנו את פרטי ההצטרפות. מסמכי ההצטרפות יועברו לחתימת מורשי החתימה שלכם בהקדם.</p>
-        <p style="font-size:0.875rem;color:#9ca3af;">צוות פנסיון מלא</p>
+    <!-- Loading -->
+    <div id="loadingScreen" class="status-screen">
+        <div class="status-icon loading"><div class="spinner"></div></div>
+        <h2 style="font-size:1.25rem;color:#111827;margin-bottom:0.5rem;">טוען מסמכים...</h2>
+        <p style="color:#6b7280;">אנא המתן בזמן שאנחנו מכינים את המסמכים שלך</p>
     </div>
 
-    <!-- Main Form -->
-    <div id="mainForm">
-        <div class="header">
-            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/684b22e06236d9fe79c43c9f/7669b86da_.png" alt="פנסיון מלא" />
-            <h1>טופס הצטרפות לפנסיון מלא</h1>
-            <p>מלאו את הפרטים להצטרפות לשירותי תפעול פנסיוני</p>
+    <!-- Error -->
+    <div id="errorScreen" class="status-screen hidden">
+        <div class="status-icon error">
+            <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="#dc2626" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        </div>
+        <h2 style="font-size:1.25rem;color:#111827;margin-bottom:0.5rem;">שגיאה</h2>
+        <p id="errorMessage" style="color:#6b7280;margin-bottom:0.5rem;"></p>
+        <p style="font-size:0.8rem;color:#9ca3af;">אנא נסה שוב או פנה לתמיכה</p>
+    </div>
+
+    <!-- Success -->
+    <div id="successScreen" class="status-screen hidden">
+        <div class="status-icon success">
+            <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="#16a34a" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <h2 id="successTitle" style="font-size:1.25rem;color:#111827;margin-bottom:0.5rem;">המסמכים נחתמו בהצלחה!</h2>
+        <p id="successMessage" style="color:#6b7280;margin-bottom:1rem;"></p>
+        <div style="background:#eff6ff;padding:0.75rem;border-radius:8px;">
+            <p style="font-size:0.875rem;color:#1e40af;font-weight:500;">💡 המסמכים החתומים יישלחו לאימייל שלך</p>
+        </div>
+        <p style="font-size:0.75rem;color:#9ca3af;margin-top:1rem;">ניתן לסגור חלון זה בבטחה</p>
+    </div>
+
+    <!-- Review Step -->
+    <div id="reviewStep" class="hidden">
+        <div class="card">
+            <div class="card-header blue">
+                <h2 style="color:#1e3a8a;font-size:1.1rem;margin:0;">📄 מסמכים לחתימה - <span id="companyName"></span></h2>
+            </div>
+            <div class="card-body" style="padding:1rem 1.5rem;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <p id="signerLabel" style="color:#6b7280;font-size:0.875rem;"></p>
+                        <p style="color:#9ca3af;font-size:0.8rem;">יש לעיין בכל המסמכים ולסמן שקראת אותם לפני החתימה</p>
+                    </div>
+                    <span id="viewedCount" class="badge badge-blue">0 / 0 מסמכים נצפו</span>
+                </div>
+            </div>
         </div>
 
-        <div class="steps">
-            <div class="step"><div class="step-circle active" id="stepCircle1">1</div><span class="step-label active" id="stepLabel1">פרטי החברה</span></div>
-            <div class="step"><div class="step-circle" id="stepCircle2">2</div><span class="step-label" id="stepLabel2">אנשי קשר</span></div>
-            <div class="step"><div class="step-circle" id="stepCircle3">3</div><span class="step-label" id="stepLabel3">פרטי תשלום</span></div>
-            <div class="step"><div class="step-circle" id="stepCircle4">4</div><span class="step-label" id="stepLabel4">מורשי חתימה</span></div>
-        </div>
+        <div id="documentsList"></div>
 
         <div class="card">
-            <div class="card-header">
-                <h2 id="stepTitle">פרטי החברה</h2>
-                <p id="stepDesc">שלב 1 מתוך 4</p>
+            <div class="card-body" style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;">
+                <p id="continueMessage" style="color:#6b7280;font-size:0.875rem;"></p>
+                <button class="btn btn-green" id="continueToSignBtn" disabled onclick="goToSignStep()">המשך לחתימה ✍️</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sign Step -->
+    <div id="signStep" class="hidden">
+        <div class="card">
+            <div class="card-header green">
+                <h2 style="color:#166534;font-size:1.1rem;margin:0;">✍️ חתימה על <span id="docCountLabel"></span> מסמכים</h2>
             </div>
             <div class="card-body">
-
-                <!-- Step 1: פרטי החברה -->
-                <div id="step1">
-                    <div class="grid-2">
-                        <div class="form-group">
-                            <label>שם החברה *</label>
-                            <input type="text" id="company_name" placeholder="שם החברה המלא" />
-                        </div>
-                        <div class="form-group">
-                            <label>ח.פ. / ע.מ. *</label>
-                            <input type="text" id="business_id" placeholder="מספר חברה / עוסק מורשה" />
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>כתובת *</label>
-                        <input type="text" id="address" placeholder="כתובת מלאה" />
-                    </div>
-                    <div class="grid-2">
-                        <div class="form-group">
-                            <label>טלפון *</label>
-                            <input type="text" id="phone" placeholder="טלפון ראשי" />
-                        </div>
-                        <div class="form-group">
-                            <label>מס' תיק ניכויים *</label>
-                            <input type="text" id="deductions_file_number" placeholder="מספר תיק ניכויים" />
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>קוד מוסד במס"ב *</label>
-                        <select id="has_masav_code" onchange="toggleMasavFields()" required>
-                            <option value="" disabled selected hidden>נא לבחור</option>
-                            <option value="yes">כן</option>
-                            <option value="no">לא</option>
-                        </select>
-                    </div>
-                    <div id="masavFields" class="hidden">
-                        <div class="grid-2">
-                            <div class="form-group">
-                                <label>קוד מוסד במס"ב *</label>
-                                <input type="text" id="institution_code" placeholder="קוד מוסד" />
-                            </div>
-                            <div class="form-group">
-                                <label>שם מוסד במס"ב *</label>
-                                <input type="text" id="institution_name" placeholder="שם המוסד" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 2: אנשי קשר -->
-                <div id="step2" class="hidden">
-                    <div class="section-box blue">
-                        <h3>איש קשר ראשי *</h3>
-                        <div class="grid-2">
-                            <div class="form-group">
-                                <label>שם מלא *</label>
-                                <input type="text" id="main_contact_name" placeholder="שם איש הקשר" />
-                            </div>
-                            <div class="form-group">
-                                <label>תפקיד</label>
-                                <input type="text" id="main_contact_role" placeholder="תפקיד בחברה" />
-                            </div>
-                            <div class="form-group">
-                                <label>טלפון *</label>
-                                <input type="text" id="main_contact_phone" placeholder="מספר טלפון" />
-                            </div>
-                            <div class="form-group">
-                                <label>אימייל *</label>
-                                <input type="email" id="main_contact_email" placeholder="כתובת אימייל" />
-                            </div>
-                        </div>
-                    </div>
-                    <div class="section-box">
-                        <h3>איש קשר שכר (הנה"ח)</h3>
-                        <div class="grid-2">
-                            <div class="form-group">
-                                <label>שם *</label>
-                                <input type="text" id="payroll_contact_name" placeholder="שם איש קשר שכר" />
-                            </div>
-                            <div class="form-group">
-                                <label>אימייל *</label>
-                                <input type="email" id="payroll_contact_email" placeholder="אימייל שכר" />
-                            </div>
-                            <div class="form-group">
-                                <label>טלפון</label>
-                                <input type="text" id="payroll_contact_phone" placeholder="טלפון איש קשר שכר" />
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>אימייל לחשבוניות *</label>
-                        <input type="email" id="invoice_email" placeholder="אימייל לקבלת חשבוניות" />
-                    </div>
-                </div>
-
-                <!-- Step 3: פרטי תשלום -->
-                <div id="step3" class="hidden">
-                    <div class="form-group">
-                        <label>אופן תשלום לקופות *</label>
-                        <select id="payment_method_to_funds" required>
-                            <option value="" disabled selected hidden>נא לבחור</option>
-                            <option value="bank_transfer">העברה בנקאית</option>
-                            <option value="masav">מס"ב</option>
-                            <option value="interface_authorization">הרשאה לחיוב חשבון לפי ממשק</option>
-                        </select>
-                    </div>
-                    <div class="section-box">
-                        <h3>פרטי חשבון בנק *</h3>
-                        <div class="grid-3">
-                            <div class="form-group">
-                                <label>בנק *</label>
-                                <select id="bank_name" required>
-                                    <option value="" disabled selected hidden>נא לבחור</option>
-                                    <option value="10">10 - בנק לאומי</option>
-                                    <option value="11">11 - בנק דיסקונט</option>
-                                    <option value="12">12 - בנק הפועלים</option>
-                                    <option value="13">13 - בנק איגוד</option>
-                                    <option value="14">14 - בנק אוצר החייל</option>
-                                    <option value="17">17 - בנק מרכנתיל דיסקונט</option>
-                                    <option value="20">20 - בנק מזרחי טפחות</option>
-                                    <option value="31">31 - הבנק הבינלאומי</option>
-                                    <option value="34">34 - בנק ערבי ישראלי</option>
-                                    <option value="46">46 - בנק מסד</option>
-                                    <option value="52">52 - בנק פועלי אגודת ישראל</option>
-                                    <option value="54">54 - בנק ירושלים</option>
-                                    <option value="99">99 - בנק ישראל</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>מספר סניף *</label>
-                                <input type="text" id="bank_branch_number" placeholder="מספר סניף" />
-                            </div>
-                            <div class="form-group">
-                                <label>מספר חשבון *</label>
-                                <input type="text" id="bank_account_number" placeholder="מספר חשבון" />
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>חודש שכר לתחילת השירות</label>
-                        <select id="salary_start_month">
-                            <option value="" disabled selected hidden>נא לבחור</option>
-                            <option value="current">נוכחי</option>
-                            <option value="current_retro">נוכחי + רטרו</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>אופן תשלום לפנסיון מלא *</label>
-                        <select id="payment_choice" required>
-                            <option value="" disabled selected hidden>נא לבחור</option>
-                            <option value="credit_card">כרטיס אשראי</option>
-                            <option value="bank_debit">הוראת קבע בנקאית</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Step 4: מורשי חתימה -->
-                <div id="step4" class="hidden">
-                    <div class="form-group">
-                        <label>מבנה חתימה *</label>
-                        <select id="signature_structure" onchange="toggleSigner2()" required>
-                            <option value="" disabled selected hidden>נא לבחור</option>
-                            <option value="one_signer">חותם יחיד</option>
-                            <option value="two_signers">שני חותמים</option>
-                        </select>
-                    </div>
-                    <div class="section-box blue">
-                        <h3>מורשה חתימה ראשון *</h3>
-                        <div class="grid-3">
-                            <div class="form-group">
-                                <label>שם מלא *</label>
-                                <input type="text" id="signer_1_name" placeholder="שם מורשה חתימה" />
-                            </div>
-                            <div class="form-group">
-                                <label>תעודת זהות *</label>
-                                <input type="text" id="signer_1_id" placeholder="מספר ת.ז." />
-                            </div>
-                            <div class="form-group">
-                                <label>אימייל *</label>
-                                <input type="email" id="signer_1_email" placeholder="אימייל לחתימה" />
-                            </div>
-                        </div>
-                    </div>
-                    <div id="signer2Section" class="section-box hidden">
-                        <h3>מורשה חתימה שני *</h3>
-                        <div class="grid-3">
-                            <div class="form-group">
-                                <label>שם מלא *</label>
-                                <input type="text" id="signer_2_name" placeholder="שם מורשה חתימה" />
-                            </div>
-                            <div class="form-group">
-                                <label>תעודת זהות *</label>
-                                <input type="text" id="signer_2_id" placeholder="מספר ת.ז." />
-                            </div>
-                            <div class="form-group">
-                                <label>אימייל *</label>
-                                <input type="email" id="signer_2_email" placeholder="אימייל לחתימה" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- אישור מורשי חתימה - העלאת קובץ -->
-                    <div class="form-group" style="margin-top: 1.25rem;">
-                        <label style="color: #dc2626; font-weight: 600;">אישור מורשי חתימה *</label>
-                        <p style="font-size: 0.8rem; color: #6b7280; margin-bottom: 0.5rem;">נא לצרף אישור מורשי חתימה באימות עו"ד / רו"ח</p>
-                        <div class="file-upload-area" id="fileUploadArea" onclick="document.getElementById('authFileInput').click()">
-                            <input type="file" id="authFileInput" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" onchange="handleFileSelect(event)" />
-                            <svg class="file-upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                            </svg>
-                            <div class="file-upload-text" id="fileUploadText">לחצו כאן להעלאת קובץ</div>
-                            <div class="file-upload-hint" id="fileUploadHint">PDF או תמונה (עד 10MB)</div>
-                        </div>
-                    </div>
-
-                    <!-- Honeypot -->
-                    <div style="position:absolute;left:-9999px;" aria-hidden="true">
-                        <label>Website</label>
-                        <input type="text" id="honeypot" tabindex="-1" autocomplete="off" />
-                    </div>
-                </div>
-
-                <div id="errorBox" class="error-box hidden">
-                    <span id="errorText"></span>
-                </div>
-
-                <!-- Fix 3: Arrow directions corrected for RTL -->
-                <div class="btn-row">
-                    <button class="btn btn-outline" id="prevBtn" onclick="prevStep()" disabled>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                        הקודם
-                    </button>
-                    <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">
-                        הבא
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                    </button>
-                    <button class="btn btn-success hidden" id="submitBtn" onclick="submitForm()">
-                        ✓ שלח טופס
-                    </button>
-                </div>
-
+                <p id="signInstructions" style="color:#6b7280;font-size:0.875rem;"></p>
             </div>
         </div>
 
-        <p class="footer">© 2026 פנסיון מלא - כל הזכויות שמורות</p>
+        <!-- Signature -->
+        <div class="card">
+            <div class="card-header"><h3 style="font-size:1rem;margin:0;">חתימה</h3></div>
+            <div class="card-body">
+                <div id="signatureInput">
+                    <div class="sig-canvas-wrap">
+                        <canvas id="sigCanvas" width="500" height="150"></canvas>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn btn-outline" onclick="clearCanvas()">🔄 נקה</button>
+                        <button class="btn btn-primary" onclick="saveSignature()" style="flex:1;">✓ שמור חתימה</button>
+                    </div>
+                </div>
+                <div id="signatureSaved" class="hidden">
+                    <div class="sig-preview">
+                        <p style="font-size:0.8rem;color:#166534;margin-bottom:0.5rem;">החתימה נשמרה:</p>
+                        <img id="savedSignatureImg" alt="חתימה" />
+                    </div>
+                    <button class="btn btn-outline btn-block" onclick="resetSignature()">🔄 חתום מחדש</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stamp (signer 1 only) -->
+        <div id="stampSection" class="card hidden">
+            <div class="card-header"><h3 style="font-size:1rem;margin:0;">חותמת חברה</h3></div>
+            <div class="card-body">
+                <div id="stampInput">
+                    <div class="stamp-options">
+                        <div class="stamp-btn active" id="virtualStampBtn" onclick="setStampMode('virtual')">🏢 חותמת וירטואלית</div>
+                        <div class="stamp-btn" id="uploadStampBtn" onclick="setStampMode('upload')">📤 העלאת חותמת</div>
+                    </div>
+                    <div id="virtualStampSection">
+                        <div class="stamp-info">
+                            <p style="font-size:0.8rem;color:#1e40af;margin-bottom:0.5rem;font-weight:500;">חותמת וירטואלית תכלול:</p>
+                            <ul style="font-size:0.8rem;color:#1e40af;padding-right:1.25rem;">
+                                <li id="stampCompanyName"></li>
+                                <li id="stampBusinessId"></li>
+                                <li id="stampAddress"></li>
+                            </ul>
+                        </div>
+                        <button class="btn btn-primary btn-block" onclick="generateVirtualStamp()">🏢 צור חותמת וירטואלית</button>
+                    </div>
+                    <div id="uploadStampSection" class="hidden">
+                        <p style="font-size:0.8rem;color:#6b7280;margin-bottom:0.75rem;">העלה תמונת חותמת מהמחשב (PNG, JPG)</p>
+                        <input type="file" id="stampFileInput" accept="image/*" onchange="handleStampUpload(event)" style="display:none;" />
+                        <button class="btn btn-outline btn-block" onclick="document.getElementById('stampFileInput').click()">📤 בחר קובץ חותמת</button>
+                    </div>
+                </div>
+                <div id="stampSaved" class="hidden">
+                    <div class="sig-preview">
+                        <p style="font-size:0.8rem;color:#166534;margin-bottom:0.5rem;">החותמת נשמרה:</p>
+                        <img id="savedStampImg" alt="חותמת" style="max-height:120px;" />
+                    </div>
+                    <button class="btn btn-outline btn-block" onclick="resetStamp()">🔄 בחר חותמת אחרת</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="card">
+            <div class="card-body">
+                <div id="signatureWarning" class="warning-box">
+                    ⚠️ יש ללחוץ על "שמור חתימה" לפני השליחה
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-outline" onclick="goToReviewStep()" style="flex:1;">חזור לצפייה</button>
+                    <button class="btn btn-green" id="submitBtn" disabled onclick="submitSignatures()" style="flex:1;">✓ שלח את כל החתימות</button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-const WEBHOOK_URL = 'https://pension-flow-79c43c9f.base44.app/api/apps/684b22e06236d9fe79c43c9f/functions/onboardingWebhook';
-const UPLOAD_URL = 'https://pension-flow-79c43c9f.base44.app/api/apps/684b22e06236d9fe79c43c9f/functions/onboardingFileUpload';
+const API_BASE = 'https://pension-flow-79c43c9f.base44.app/api/apps/684b22e06236d9fe79c43c9f/functions';
+const GET_DOCS_URL = API_BASE + '/getSigningDocuments';
+const SUBMIT_URL = API_BASE + '/submitSignatures';
 
-let currentStep = 1;
-let authorizationFileUrl = '';
-const stepTitles = ['פרטי החברה', 'אנשי קשר', 'פרטי תשלום', 'מורשי חתימה'];
+let state = {
+    submissionId: null,
+    token: null,
+    signer: 'signer_1',
+    signerIndex: 1,
+    companyData: null,
+    documents: [],
+    viewedDocs: {},
+    signatureData: null,
+    stampData: null,
+    stampMode: 'virtual'
+};
 
-function val(id) { return document.getElementById(id)?.value?.trim() || ''; }
+// Parse URL params
+const urlParams = new URLSearchParams(window.location.search);
+state.submissionId = urlParams.get('submission_id');
+state.token = urlParams.get('token');
+state.signer = urlParams.get('signer') || 'signer_1';
+state.signerIndex = state.signer === 'signer_2' ? 2 : 1;
 
-function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
-function isValidBusinessId(id) { return /^\\d{9}$/.test(id); }
-function isValidPhone(p) { return /^0\\d{9}$/.test(p.replace(/[-\\s]/g, '')); }
-function isValidIsraeliId(id) {
-    if (!id || !/^\\d{5,9}$/.test(id)) return false;
-    const p = id.padStart(9, '0');
-    let s = 0;
-    for (let i = 0; i < 9; i++) { let d = parseInt(p[i]) * ((i % 2) + 1); if (d > 9) d -= 9; s += d; }
-    return s % 10 === 0;
+if (!state.submissionId || !state.token) {
+    showError('קישור חתימה לא תקין - חסרים פרמטרים');
+} else {
+    loadDocuments();
 }
 
-function toggleMasavFields() {
-    document.getElementById('masavFields').classList.toggle('hidden', val('has_masav_code') !== 'yes');
-}
-
-function toggleSigner2() {
-    document.getElementById('signer2Section').classList.toggle('hidden', val('signature_structure') !== 'two_signers');
-}
-
-function showError(msg) {
-    document.getElementById('errorText').textContent = msg;
-    document.getElementById('errorBox').classList.remove('hidden');
-}
-function hideError() { document.getElementById('errorBox').classList.add('hidden'); }
-
-// File upload handling
-async function handleFileSelect(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-        alert('ניתן להעלות רק קבצי PDF או תמונה (JPG, PNG)');
-        event.target.value = '';
-        return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-        alert('גודל הקובץ חייב להיות עד 10MB');
-        event.target.value = '';
-        return;
-    }
-
-    const area = document.getElementById('fileUploadArea');
-    const textEl = document.getElementById('fileUploadText');
-    const hintEl = document.getElementById('fileUploadHint');
-    
-    textEl.textContent = 'מעלה קובץ...';
-    hintEl.textContent = '';
-
+async function loadDocuments() {
     try {
-        const formData = new FormData();
-        formData.append('file', file);
-
-        const res = await fetch(UPLOAD_URL, {
+        const res = await fetch(GET_DOCS_URL, {
             method: 'POST',
-            body: formData
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                submission_id: state.submissionId,
+                token: state.token,
+                signer: state.signer
+            })
         });
-        const result = await res.json();
+        const data = await res.json();
         
-        if (result.file_url) {
-            authorizationFileUrl = result.file_url;
-            area.classList.add('uploaded');
-            area.onclick = null;
-            textEl.innerHTML = '✓ הקובץ הועלה בהצלחה';
-            textEl.style.color = '#16a34a';
-            textEl.style.fontWeight = '600';
-            hintEl.textContent = file.name;
-            hintEl.insertAdjacentHTML('afterend', '<button class="file-replace-btn" onclick="resetFileUpload(event)">החלף קובץ</button>');
-        } else {
-            throw new Error(result.error || 'שגיאה בהעלאה');
+        if (!data.success) {
+            showError(data.error || 'שגיאה בטעינת המסמכים');
+            return;
         }
+
+        state.companyData = data.companyData;
+        state.documents = data.documents;
+        state.signerIndex = data.signerIndex;
+
+        renderReviewStep();
+        show('reviewStep');
+        hide('loadingScreen');
     } catch (err) {
-        console.error('Upload error:', err);
-        textEl.textContent = 'לחצו כאן להעלאת קובץ';
-        hintEl.textContent = 'PDF או תמונה (עד 10MB)';
-        alert('שגיאה בהעלאת הקובץ. אנא נסו שוב.');
+        showError('שגיאה בטעינת המסמכים. אנא נסה שוב.');
     }
 }
 
-function resetFileUpload(e) {
-    if (e) { e.stopPropagation(); e.preventDefault(); }
-    authorizationFileUrl = '';
-    const area = document.getElementById('fileUploadArea');
-    const textEl = document.getElementById('fileUploadText');
-    const hintEl = document.getElementById('fileUploadHint');
-    area.classList.remove('uploaded');
-    area.onclick = function() { document.getElementById('authFileInput').click(); };
-    textEl.textContent = 'לחצו כאן להעלאת קובץ';
-    textEl.style.color = '';
-    textEl.style.fontWeight = '';
-    hintEl.textContent = 'PDF או תמונה (עד 10MB)';
-    document.getElementById('authFileInput').value = '';
-    const btn = area.querySelector('.file-replace-btn');
-    if (btn) btn.remove();
-}
+function renderReviewStep() {
+    document.getElementById('companyName').textContent = state.companyData.name;
+    document.getElementById('signerLabel').textContent = state.signerIndex === 1 ? 'מורשה חתימה ראשון' : 'מורשה חתימה שני';
+    updateViewedCount();
 
-function validateCurrentStep() {
-    hideError();
-    switch (currentStep) {
-        case 1:
-            if (!val('company_name') || !val('business_id') || !val('address') || !val('phone') || !val('deductions_file_number')) {
-                showError('יש למלא את כל שדות החובה בעמוד זה'); return false;
-            }
-            if (!isValidBusinessId(val('business_id'))) { showError('מספר ח.פ. לא תקין - נדרשים 9 ספרות'); return false; }
-            if (!isValidPhone(val('phone'))) { showError('מספר טלפון לא תקין - נדרשות 10 ספרות המתחילות ב-0'); return false; }
-            if (!val('has_masav_code')) { showError('יש לבחור האם קיים קוד מוסד במס"ב'); return false; }
-            if (val('has_masav_code') === 'yes' && (!val('institution_code') || !val('institution_name'))) {
-                showError('יש למלא את שדות קוד מוסד ושם מוסד במס"ב'); return false;
-            }
-            return true;
-        case 2:
-            if (!val('main_contact_name') || !val('main_contact_phone') || !val('main_contact_email') || !val('invoice_email')) {
-                showError('יש למלא את כל שדות החובה של איש קשר ראשי ואימייל לחשבוניות'); return false;
-            }
-            if (!isValidPhone(val('main_contact_phone'))) { showError('טלפון איש קשר ראשי לא תקין'); return false; }
-            if (!isValidEmail(val('main_contact_email'))) { showError('אימייל איש קשר ראשי לא תקין'); return false; }
-            if (!val('payroll_contact_name') || !val('payroll_contact_email')) {
-                showError('יש למלא שם ואימייל של איש קשר שכר (הנה"ח)'); return false;
-            }
-            if (!isValidEmail(val('payroll_contact_email'))) { showError('אימייל איש קשר שכר לא תקין'); return false; }
-            if (val('payroll_contact_phone') && !isValidPhone(val('payroll_contact_phone'))) { showError('טלפון איש קשר שכר לא תקין'); return false; }
-            if (!isValidEmail(val('invoice_email'))) { showError('אימייל לחשבוניות לא תקין'); return false; }
-            return true;
-        case 3:
-            if (!val('payment_method_to_funds')) { showError('יש לבחור אופן תשלום לקופות'); return false; }
-            if (!val('bank_name') || !val('bank_branch_number') || !val('bank_account_number')) {
-                showError('יש למלא את כל פרטי חשבון הבנק'); return false;
-            }
-            if (!val('payment_choice')) { showError('יש לבחור אופן תשלום לפנסיון מלא'); return false; }
-            return true;
-        case 4:
-            if (!val('signature_structure')) { showError('יש לבחור מבנה חתימה'); return false; }
-            if (!val('signer_1_name') || !val('signer_1_id') || !val('signer_1_email')) {
-                showError('יש למלא את כל פרטי מורשה חתימה ראשון'); return false;
-            }
-            if (!isValidIsraeliId(val('signer_1_id'))) { showError('מספר ת.ז. של מורשה חתימה ראשון לא תקין'); return false; }
-            if (!isValidEmail(val('signer_1_email'))) { showError('אימייל של מורשה חתימה ראשון לא תקין'); return false; }
-            if (val('signature_structure') === 'two_signers') {
-                if (!val('signer_2_name') || !val('signer_2_id') || !val('signer_2_email')) {
-                    showError('יש למלא את כל פרטי מורשה חתימה שני'); return false;
-                }
-                if (!isValidIsraeliId(val('signer_2_id'))) { showError('מספר ת.ז. של מורשה חתימה שני לא תקין'); return false; }
-                if (!isValidEmail(val('signer_2_email'))) { showError('אימייל של מורשה חתימה שני לא תקין'); return false; }
-            }
-            if (!authorizationFileUrl) { showError('יש לצרף אישור מורשי חתימה באימות עו"ד / רו"ח'); return false; }
-            return true;
+    const list = document.getElementById('documentsList');
+    list.innerHTML = '';
+    state.documents.forEach((doc, i) => {
+        const item = document.createElement('div');
+        item.className = 'doc-item';
+        item.id = 'doc-' + doc.id;
+        item.innerHTML = \`
+            <div class="doc-header" onclick="toggleDoc('\${doc.id}')">
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <span>📄</span>
+                    <div>
+                        <strong>\${doc.template_name || 'מסמך ' + (i+1)}</strong>
+                        <div style="font-size:0.75rem;color:#9ca3af;">מסמך \${i+1} מתוך \${state.documents.length}</div>
+                    </div>
+                </div>
+                <span class="badge badge-orange" id="badge-\${doc.id}">טרם נצפה</span>
+            </div>
+            <div class="doc-content hidden" id="content-\${doc.id}">
+                \${doc.html_content || '<p>תוכן המסמך אינו זמין</p>'}
+            </div>
+            <div class="doc-footer hidden" id="footer-\${doc.id}">
+                <div class="check-row">
+                    <input type="checkbox" id="check-\${doc.id}" onchange="markViewed('\${doc.id}')">
+                    <label for="check-\${doc.id}" style="font-size:0.875rem;cursor:pointer;">קראתי והבנתי את תוכן המסמך</label>
+                </div>
+                <button class="btn btn-primary" onclick="markViewed('\${doc.id}')" id="viewBtn-\${doc.id}">👁️ סמן כנצפה</button>
+            </div>
+        \`;
+        list.appendChild(item);
+    });
+
+    // Auto-expand first
+    if (state.documents.length > 0) {
+        toggleDoc(state.documents[0].id);
     }
-    return true;
 }
 
-function updateUI() {
-    for (let i = 1; i <= 4; i++) {
-        document.getElementById('step' + i).classList.toggle('hidden', i !== currentStep);
-        document.getElementById('stepCircle' + i).classList.toggle('active', i <= currentStep);
-        document.getElementById('stepLabel' + i).classList.toggle('active', i <= currentStep);
+function toggleDoc(docId) {
+    const content = document.getElementById('content-' + docId);
+    const footer = document.getElementById('footer-' + docId);
+    const isHidden = content.classList.contains('hidden');
+    
+    // Close all
+    state.documents.forEach(d => {
+        document.getElementById('content-' + d.id)?.classList.add('hidden');
+        document.getElementById('footer-' + d.id)?.classList.add('hidden');
+    });
+
+    if (isHidden) {
+        content.classList.remove('hidden');
+        footer.classList.remove('hidden');
     }
-    document.getElementById('stepTitle').textContent = stepTitles[currentStep - 1];
-    document.getElementById('stepDesc').textContent = 'שלב ' + currentStep + ' מתוך 4';
-    document.getElementById('prevBtn').disabled = currentStep === 1;
-    document.getElementById('nextBtn').classList.toggle('hidden', currentStep === 4);
-    document.getElementById('submitBtn').classList.toggle('hidden', currentStep !== 4);
-    hideError();
 }
 
-function nextStep() {
-    if (validateCurrentStep() && currentStep < 4) { currentStep++; updateUI(); }
-}
-function prevStep() {
-    if (currentStep > 1) { currentStep--; updateUI(); }
+function markViewed(docId) {
+    state.viewedDocs[docId] = true;
+    const badge = document.getElementById('badge-' + docId);
+    badge.className = 'badge badge-green';
+    badge.textContent = '✓ נצפה';
+    const check = document.getElementById('check-' + docId);
+    if (check) check.checked = true;
+    const viewBtn = document.getElementById('viewBtn-' + docId);
+    if (viewBtn) viewBtn.classList.add('hidden');
+    updateViewedCount();
 }
 
-async function submitForm() {
-    if (val('honeypot')) {
-        document.getElementById('mainForm').classList.add('hidden');
-        document.getElementById('successScreen').classList.remove('hidden');
-        return;
+function updateViewedCount() {
+    const viewed = Object.keys(state.viewedDocs).length;
+    const total = state.documents.length;
+    document.getElementById('viewedCount').textContent = viewed + ' / ' + total + ' מסמכים נצפו';
+    
+    const allViewed = viewed >= total && total > 0;
+    document.getElementById('continueToSignBtn').disabled = !allViewed;
+    document.getElementById('continueMessage').textContent = allViewed 
+        ? 'כל המסמכים נצפו. ניתן להמשיך לחתימה.' 
+        : 'יש לצפות בכל המסמכים לפני המשך לחתימה';
+}
+
+function goToSignStep() {
+    hide('reviewStep');
+    show('signStep');
+    
+    document.getElementById('docCountLabel').textContent = state.documents.length;
+    
+    if (state.signerIndex === 1) {
+        document.getElementById('signInstructions').textContent = 'יש להוסיף חתימה וחותמת. החתימה והחותמת יוחלו על כל המסמכים.';
+        show('stampSection');
+        document.getElementById('stampCompanyName').textContent = '• שם החברה: ' + state.companyData.name;
+        document.getElementById('stampBusinessId').textContent = '• ח.פ.: ' + state.companyData.businessId;
+        document.getElementById('stampAddress').textContent = '• כתובת: ' + state.companyData.address;
+    } else {
+        document.getElementById('signInstructions').textContent = 'יש להוסיף חתימה בלבד. החותמת כבר נוספה על ידי מורשה החתימה הראשון.';
     }
 
-    if (!validateCurrentStep()) return;
+    initCanvas();
+    updateSubmitBtn();
+}
+
+function goToReviewStep() {
+    hide('signStep');
+    show('reviewStep');
+}
+
+// Canvas
+let isDrawing = false;
+function initCanvas() {
+    const canvas = document.getElementById('sigCanvas');
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', doDraw);
+    canvas.addEventListener('mouseup', stopDraw);
+    canvas.addEventListener('mouseleave', stopDraw);
+    canvas.addEventListener('touchstart', startDraw, { passive: false });
+    canvas.addEventListener('touchmove', doDraw, { passive: false });
+    canvas.addEventListener('touchend', stopDraw);
+}
+
+function getPos(e) {
+    const canvas = document.getElementById('sigCanvas');
+    const rect = canvas.getBoundingClientRect();
+    const sx = canvas.width / rect.width;
+    const sy = canvas.height / rect.height;
+    const cx = e.clientX || e.touches?.[0]?.clientX || 0;
+    const cy = e.clientY || e.touches?.[0]?.clientY || 0;
+    return { x: (cx - rect.left) * sx, y: (cy - rect.top) * sy };
+}
+
+function startDraw(e) {
+    e.preventDefault();
+    isDrawing = true;
+    const ctx = document.getElementById('sigCanvas').getContext('2d');
+    const p = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+}
+
+function doDraw(e) {
+    e.preventDefault();
+    if (!isDrawing) return;
+    const ctx = document.getElementById('sigCanvas').getContext('2d');
+    const p = getPos(e);
+    ctx.lineTo(p.x, p.y);
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+}
+
+function stopDraw() { isDrawing = false; }
+
+function clearCanvas() {
+    const canvas = document.getElementById('sigCanvas');
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function saveSignature() {
+    const canvas = document.getElementById('sigCanvas');
+    const ctx = canvas.getContext('2d');
+    const px = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    if (!px.some(p => p !== 0)) { alert('יש לחתום לפני השמירה'); return; }
+    
+    state.signatureData = canvas.toDataURL('image/png');
+    document.getElementById('savedSignatureImg').src = state.signatureData;
+    hide('signatureInput');
+    show('signatureSaved');
+    hide('signatureWarning');
+    updateSubmitBtn();
+}
+
+function resetSignature() {
+    state.signatureData = null;
+    clearCanvas();
+    show('signatureInput');
+    hide('signatureSaved');
+    show('signatureWarning');
+    updateSubmitBtn();
+}
+
+// Stamp
+function setStampMode(mode) {
+    state.stampMode = mode;
+    document.getElementById('virtualStampBtn').className = 'stamp-btn' + (mode === 'virtual' ? ' active' : '');
+    document.getElementById('uploadStampBtn').className = 'stamp-btn' + (mode === 'upload' ? ' active' : '');
+    if (mode === 'virtual') { show('virtualStampSection'); hide('uploadStampSection'); }
+    else { hide('virtualStampSection'); show('uploadStampSection'); }
+}
+
+function generateVirtualStamp() {
+    const cd = state.companyData;
+    if (!cd) return;
+    
+    const size = 400;
+    const canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, size, size);
+    
+    const cx = size/2, cy = size/2, R = 185;
+    const color = '#0a1e5e';
+    
+    ctx.strokeStyle = color; ctx.lineWidth = 7;
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI*2); ctx.stroke();
+    ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(cx, cy, R-11, 0, Math.PI*2); ctx.stroke();
+    
+    // Company name arc
+    const name = cd.name || '';
+    ctx.save(); ctx.translate(cx, cy);
+    ctx.fillStyle = color; ctx.font = 'bold 31px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const arcSpan = Math.min(Math.PI*1.5, Math.max(Math.PI*0.9, name.length*0.13));
+    const arcStart = -Math.PI/2 - arcSpan/2;
+    const arcStep = name.length > 1 ? arcSpan/(name.length-1) : 0;
+    const textR = R - 30;
+    for (let i=0; i<name.length; i++) {
+        const ci = name.length-1-i;
+        const a = arcStart + arcStep*i;
+        ctx.save();
+        ctx.translate(Math.cos(a)*textR, Math.sin(a)*textR);
+        ctx.rotate(a + Math.PI/2);
+        ctx.fillText(name[ci], 0, 0);
+        ctx.restore();
+    }
+    ctx.restore();
+    
+    // Inner circle
+    ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(cx, cy, R-52, 0, Math.PI*2); ctx.stroke();
+    
+    // Lines
+    ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(cx-65, cy-22); ctx.lineTo(cx+65, cy-22); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx-65, cy+22); ctx.lineTo(cx+65, cy+22); ctx.stroke();
+    
+    // Business ID
+    ctx.fillStyle = color; ctx.font = 'bold 26px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('ח.פ. ' + (cd.businessId || ''), cx, cy);
+    
+    // Date
+    ctx.font = 'bold 17px Arial';
+    ctx.fillText(new Date().toLocaleDateString('he-IL'), cx, cy+40);
+    
+    // Address arc bottom
+    const addr = (cd.address || '').substring(0, 25);
+    if (addr) {
+        ctx.save(); ctx.translate(cx, cy);
+        ctx.fillStyle = color; ctx.font = 'bold 18px Arial';
+        const aSpan = Math.min(Math.PI*1.1, Math.max(Math.PI*0.5, addr.length*0.07));
+        const aStart = Math.PI/2 + aSpan/2;
+        const aStep = addr.length > 1 ? aSpan/(addr.length-1) : 0;
+        for (let i=0; i<addr.length; i++) {
+            const ci = addr.length-1-i;
+            const a = aStart - aStep*i;
+            ctx.save();
+            ctx.translate(Math.cos(a)*textR, Math.sin(a)*textR);
+            ctx.rotate(a - Math.PI/2);
+            ctx.fillText(addr[ci], 0, 0);
+            ctx.restore();
+        }
+        ctx.restore();
+    }
+    
+    state.stampData = canvas.toDataURL('image/png');
+    document.getElementById('savedStampImg').src = state.stampData;
+    hide('stampInput');
+    show('stampSaved');
+    updateSubmitBtn();
+}
+
+function handleStampUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        state.stampData = ev.target.result;
+        document.getElementById('savedStampImg').src = state.stampData;
+        hide('stampInput');
+        show('stampSaved');
+        updateSubmitBtn();
+    };
+    reader.readAsDataURL(file);
+}
+
+function resetStamp() {
+    state.stampData = null;
+    show('stampInput');
+    hide('stampSaved');
+    updateSubmitBtn();
+}
+
+function updateSubmitBtn() {
+    const hasSig = !!state.signatureData;
+    const hasStamp = state.signerIndex !== 1 || !!state.stampData;
+    document.getElementById('submitBtn').disabled = !hasSig || !hasStamp;
+}
+
+async function submitSignatures() {
+    if (!state.signatureData) { alert('יש לחתום לפני השליחה'); return; }
+    if (state.signerIndex === 1 && !state.stampData) { alert('יש להוסיף חותמת'); return; }
 
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> שולח...';
-
-    const data = {
-        company_name: val('company_name'),
-        business_id: val('business_id'),
-        address: val('address'),
-        phone: val('phone'),
-        deductions_file_number: val('deductions_file_number'),
-        has_masav_code: val('has_masav_code'),
-        institution_code: val('institution_code'),
-        institution_name: val('institution_name'),
-        payment_method_to_funds: val('payment_method_to_funds'),
-        bank_name: val('bank_name'),
-        bank_branch_number: val('bank_branch_number'),
-        bank_account_number: val('bank_account_number'),
-        salary_start_month: val('salary_start_month'),
-        main_contact_name: val('main_contact_name'),
-        main_contact_role: val('main_contact_role'),
-        main_contact_phone: val('main_contact_phone'),
-        main_contact_email: val('main_contact_email'),
-        payroll_contact_name: val('payroll_contact_name'),
-        payroll_contact_email: val('payroll_contact_email'),
-        payroll_contact_phone: val('payroll_contact_phone'),
-        invoice_email: val('invoice_email'),
-        signature_structure: val('signature_structure'),
-        signer_1_name: val('signer_1_name'),
-        signer_1_id: val('signer_1_id'),
-        signer_1_email: val('signer_1_email'),
-        signer_2_name: val('signer_2_name'),
-        signer_2_id: val('signer_2_id'),
-        signer_2_email: val('signer_2_email'),
-        payment_choice: val('payment_choice'),
-        authorization_file_url: authorizationFileUrl,
-    };
+    btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2px;"></span> שולח...';
 
     try {
-        const res = await fetch(WEBHOOK_URL, {
+        const res = await fetch(SUBMIT_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+            body: JSON.stringify({
+                submission_id: state.submissionId,
+                token: state.token,
+                signer_id: state.signer,
+                signer_index: state.signerIndex,
+                signature_data: state.signatureData,
+                stamp_data: state.signerIndex === 1 ? state.stampData : null,
+                documents_html: null
+            })
         });
-        const result = await res.json();
-        if (result.success) {
-            document.getElementById('mainForm').classList.add('hidden');
-            document.getElementById('successScreen').classList.remove('hidden');
+        const data = await res.json();
+
+        if (data.success || data.documents_updated) {
+            hide('signStep');
+            const isLast = state.signerIndex === 2 || state.documents.some(d => !d.requires_two_signers);
+            document.getElementById('successTitle').textContent = isLast ? 'כל המסמכים נחתמו בהצלחה!' : 'חתימתך נשמרה בהצלחה!';
+            document.getElementById('successMessage').textContent = isLast 
+                ? 'תודה לך על חתימת המסמכים. עותקים של המסמכים החתומים נשלחו לאימייל שלך.'
+                : 'תודה לך על חתימת המסמכים. עותקים יישלחו לאחר השלמת כל החתימות.';
+            show('successScreen');
         } else {
-            showError(result.error || 'שגיאה בשליחת הטופס');
+            alert(data.error || 'שגיאה בשליחת החתימות');
             btn.disabled = false;
-            btn.innerHTML = '✓ שלח טופס';
+            btn.innerHTML = '✓ שלח את כל החתימות';
         }
     } catch (err) {
-        showError('שגיאה בשליחת הטופס. אנא נסו שוב.');
+        alert('שגיאה בשליחת החתימות. אנא נסה שוב.');
         btn.disabled = false;
-        btn.innerHTML = '✓ שלח טופס';
+        btn.innerHTML = '✓ שלח את כל החתימות';
     }
 }
-</script>
 
+function showError(msg) {
+    hide('loadingScreen');
+    document.getElementById('errorMessage').textContent = msg;
+    show('errorScreen');
+}
+
+function show(id) { document.getElementById(id)?.classList.remove('hidden'); }
+function hide(id) { document.getElementById(id)?.classList.add('hidden'); }
+</script>
 </body>
 </html>
 `;
-
