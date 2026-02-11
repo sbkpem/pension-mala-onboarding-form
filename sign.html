@@ -308,27 +308,46 @@ function renderReviewStep() {
         var docName = doc.template_name || ('מסמך ' + (i+1));
         var docNum = (i+1) + ' מתוך ' + state.documents.length;
         var htmlContent = doc.html_content || '<p>תוכן המסמך אינו זמין</p>';
-        item.innerHTML = ''
-            + '<div class="doc-header" onclick="toggleDoc(\\'' + doc.id + '\\')">'
-            +   '<div style="display:flex;align-items:center;gap:0.5rem;">'
-            +     '<span>📄</span>'
-            +     '<div>'
-            +       '<strong>' + docName + '</strong>'
-            +       '<div style="font-size:0.75rem;color:#9ca3af;">מסמך ' + docNum + '</div>'
-            +     '</div>'
-            +   '</div>'
-            +   '<span class="badge badge-orange" id="badge-' + doc.id + '">טרם נצפה</span>'
-            + '</div>'
-            + '<div class="doc-content hidden" id="content-' + doc.id + '">'
-            +   htmlContent
-            + '</div>'
-            + '<div class="doc-footer hidden" id="footer-' + doc.id + '">'
-            +   '<div class="check-row">'
-            +     '<input type="checkbox" id="check-' + doc.id + '" onchange="markViewed(\\'' + doc.id + '\\')">'
-            +     '<label for="check-' + doc.id + '" style="font-size:0.875rem;cursor:pointer;">קראתי והבנתי את תוכן המסמך</label>'
-            +   '</div>'
-            +   '<button class="btn btn-primary" onclick="markViewed(\\'' + doc.id + '\\')" id="viewBtn-' + doc.id + '">👁️ סמן כנצפה</button>'
-            + '</div>';
+
+        var headerDiv = document.createElement('div');
+        headerDiv.className = 'doc-header';
+        headerDiv.onclick = function() { toggleDoc(doc.id); };
+        headerDiv.innerHTML = '<div style="display:flex;align-items:center;gap:0.5rem;"><span>📄</span><div><strong>' + docName + '</strong><div style="font-size:0.75rem;color:#9ca3af;">מסמך ' + docNum + '</div></div></div><span class="badge badge-orange" id="badge-' + doc.id + '">טרם נצפה</span>';
+
+        var contentDiv = document.createElement('div');
+        contentDiv.className = 'doc-content hidden';
+        contentDiv.id = 'content-' + doc.id;
+        contentDiv.innerHTML = htmlContent;
+
+        var footerDiv = document.createElement('div');
+        footerDiv.className = 'doc-footer hidden';
+        footerDiv.id = 'footer-' + doc.id;
+
+        var checkRow = document.createElement('div');
+        checkRow.className = 'check-row';
+        var cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.id = 'check-' + doc.id;
+        cb.onchange = function() { markViewed(doc.id); };
+        var lbl = document.createElement('label');
+        lbl.htmlFor = 'check-' + doc.id;
+        lbl.style.cssText = 'font-size:0.875rem;cursor:pointer;';
+        lbl.textContent = 'קראתי והבנתי את תוכן המסמך';
+        checkRow.appendChild(cb);
+        checkRow.appendChild(lbl);
+
+        var viewBtn = document.createElement('button');
+        viewBtn.className = 'btn btn-primary';
+        viewBtn.id = 'viewBtn-' + doc.id;
+        viewBtn.onclick = function() { markViewed(doc.id); };
+        viewBtn.textContent = '👁️ סמן כנצפה';
+
+        footerDiv.appendChild(checkRow);
+        footerDiv.appendChild(viewBtn);
+
+        item.appendChild(headerDiv);
+        item.appendChild(contentDiv);
+        item.appendChild(footerDiv);
         list.appendChild(item);
     });
 
