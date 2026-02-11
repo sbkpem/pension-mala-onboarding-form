@@ -420,10 +420,10 @@ const stepTitles = ['פרטי החברה', 'אנשי קשר', 'פרטי תשלו
 function val(id) { return document.getElementById(id)?.value?.trim() || ''; }
 
 function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
-function isValidBusinessId(id) { return /^\\d{9}$/.test(id); }
-function isValidPhone(p) { return /^0\\d{9}$/.test(p.replace(/[-\\s]/g, '')); }
+function isValidBusinessId(id) { return /^\d{9}$/.test(id); }
+function isValidPhone(p) { return /^0\d{9}$/.test(p.replace(/[-\s]/g, '')); }
 function isValidIsraeliId(id) {
-    if (!id || !/^\\d{5,9}$/.test(id)) return false;
+    if (!id || !/^\d{5,9}$/.test(id)) return false;
     const p = id.padStart(9, '0');
     let s = 0;
     for (let i = 0; i < 9; i++) { let d = parseInt(p[i]) * ((i % 2) + 1); if (d > 9) d -= 9; s += d; }
