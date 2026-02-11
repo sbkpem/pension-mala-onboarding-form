@@ -228,7 +228,7 @@
 const API_BASE = 'https://pension-flow-79c43c9f.base44.app/api/apps/684b22e06236d9fe79c43c9f/functions';
 const GET_DOCS_URL = API_BASE + '/getSigningDocuments';
 const SUBMIT_URL = API_BASE + '/submitSignatures';
-const WATERMARK_URL = API_BASE + '/watermarkImage';  // Used for PM image watermarks in document view
+// WATERMARK_URL removed - PM images are now placeholders, watermarking happens only in saveConsolidatedSignatures
 
 let state = {
     submissionId: null,
@@ -288,40 +288,7 @@ async function loadDocuments() {
     }
 }
 
-async function watermarkDocImages(containerEl, docName) {
-    var imgs = containerEl.querySelectorAll('img');
-    var urlsToWatermark = [];
-    var urlImgElements = [];
-    
-    imgs.forEach(function(img) {
-        var src = img.getAttribute('src') || '';
-        // Skip logos
-        if (src.indexOf('logo') !== -1) return;
-        // Skip data URIs entirely - SVG watermarks already applied server-side,
-        // and base64 images (png/jpeg) from PM fields are also already watermarked server-side
-        if (src.startsWith('data:')) return;
-        // HTTP URLs - batch watermark on server
-        if (src.startsWith('http')) {
-            urlsToWatermark.push(src);
-            urlImgElements.push(img);
-        }
-    });
-    
-    // Batch watermark URL images on server
-    if (urlsToWatermark.length === 0) return;
-    
-    try {
-        var results = await getServerWatermarkForUrls(urlsToWatermark, docName);
-        urlImgElements.forEach(function(img) {
-            var originalSrc = img.getAttribute('src');
-            if (results[originalSrc]) {
-                img.src = results[originalSrc];
-            }
-        });
-    } catch (err) {
-        console.log('Batch watermark failed:', err);
-    }
-}
+// watermarkDocImages removed - PM images are now text placeholders, no images to watermark during preview
 
 function renderReviewStep() {
     document.getElementById('companyName').textContent = state.companyData.name;
@@ -354,9 +321,6 @@ function renderReviewStep() {
         contentDiv.className = 'doc-content hidden';
         contentDiv.id = 'content-' + doc.id;
         contentDiv.innerHTML = htmlContent;
-
-        // Watermark all images in document content (PM signatures/stamps)
-        watermarkDocImages(contentDiv, docName);
 
         var footerDiv = document.createElement('div');
         footerDiv.className = 'doc-footer hidden';
@@ -515,30 +479,7 @@ function clearCanvas() {
 
 // getServerWatermark removed - watermark is now burned server-side on final submit via sharp
 
-async function getServerWatermarkForUrls(imageUrls, docName) {
-    try {
-        var res = await fetch(WATERMARK_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                image_urls: imageUrls,
-                submission_id: state.submissionId,
-                token: state.token,
-                company_name: state.companyData ? state.companyData.name : '',
-                signer_name: state.signerName || '',
-                document_name: docName || ''
-            })
-        });
-        var data = await res.json();
-        if (data.success && data.watermarked_images) {
-            return data.watermarked_images;
-        }
-        return {};
-    } catch (err) {
-        console.log('Server watermark for URLs failed:', err);
-        return {};
-    }
-}
+// getServerWatermarkForUrls removed - no longer needed
 
 async function saveSignature() {
     const canvas = document.getElementById('sigCanvas');
