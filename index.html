@@ -43,9 +43,29 @@
         .form-group input, .form-group select {
             width: 100%; padding: 0.625rem 0.75rem; border: 1px solid #d1d5db; border-radius: 8px;
             font-size: 0.875rem; transition: border-color 0.2s; direction: rtl; text-align: right;
+            background-color: white; color: #111827;
         }
         .form-group input:focus, .form-group select:focus {
             outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        }
+        /* Fix 1: placeholder style for select */
+        .form-group select:invalid,
+        .form-group select option[value=""][disabled] {
+            color: #9ca3af;
+        }
+        .form-group select option:not([disabled]) {
+            color: #111827;
+        }
+        /* Fix 2: select arrow positioning */
+        .form-group select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: left 0.75rem center;
+            background-size: 16px;
+            padding-left: 2.5rem;
         }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
@@ -85,6 +105,24 @@
         .footer { text-align: center; font-size: 0.8rem; color: #9ca3af; margin-top: 1.5rem; }
         .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.6s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* File upload area */
+        .file-upload-area {
+            border: 2px dashed #d1d5db; border-radius: 8px; padding: 1.5rem; text-align: center;
+            cursor: pointer; transition: all 0.2s; background: #fafafa;
+        }
+        .file-upload-area:hover { border-color: #2563eb; background: #eff6ff; }
+        .file-upload-area.uploaded { border-color: #16a34a; background: #f0fdf4; cursor: default; }
+        .file-upload-area input[type="file"] { display: none; }
+        .file-upload-icon { width: 32px; height: 32px; margin: 0 auto 0.5rem; color: #9ca3af; }
+        .file-upload-area.uploaded .file-upload-icon { color: #16a34a; }
+        .file-upload-text { font-size: 0.875rem; color: #6b7280; }
+        .file-upload-hint { font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem; }
+        .file-replace-btn {
+            margin-top: 0.5rem; padding: 0.25rem 0.75rem; font-size: 0.75rem; border-radius: 6px;
+            border: 1px solid #d1d5db; background: white; cursor: pointer; color: #374151;
+        }
+        .file-replace-btn:hover { background: #f3f4f6; }
     </style>
 </head>
 <body>
@@ -152,7 +190,7 @@
                     </div>
                     <div class="form-group">
                         <label>קוד מוסד במס"ב *</label>
-                        <select id="has_masav_code" onchange="toggleMasavFields()">
+                        <select id="has_masav_code" onchange="toggleMasavFields()" required>
                             <option value="" disabled selected hidden>נא לבחור</option>
                             <option value="yes">כן</option>
                             <option value="no">לא</option>
@@ -222,7 +260,7 @@
                 <div id="step3" class="hidden">
                     <div class="form-group">
                         <label>אופן תשלום לקופות *</label>
-                        <select id="payment_method_to_funds">
+                        <select id="payment_method_to_funds" required>
                             <option value="" disabled selected hidden>נא לבחור</option>
                             <option value="bank_transfer">העברה בנקאית</option>
                             <option value="masav">מס"ב</option>
@@ -234,7 +272,7 @@
                         <div class="grid-3">
                             <div class="form-group">
                                 <label>בנק *</label>
-                                <select id="bank_name">
+                                <select id="bank_name" required>
                                     <option value="" disabled selected hidden>נא לבחור</option>
                                     <option value="10">10 - בנק לאומי</option>
                                     <option value="11">11 - בנק דיסקונט</option>
@@ -270,8 +308,8 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>אופן תשלום לפנסיון מלא</label>
-                        <select id="payment_choice">
+                        <label>אופן תשלום לפנסיון מלא *</label>
+                        <select id="payment_choice" required>
                             <option value="" disabled selected hidden>נא לבחור</option>
                             <option value="credit_card">כרטיס אשראי</option>
                             <option value="bank_debit">הוראת קבע בנקאית</option>
@@ -283,7 +321,7 @@
                 <div id="step4" class="hidden">
                     <div class="form-group">
                         <label>מבנה חתימה *</label>
-                        <select id="signature_structure" onchange="toggleSigner2()">
+                        <select id="signature_structure" onchange="toggleSigner2()" required>
                             <option value="" disabled selected hidden>נא לבחור</option>
                             <option value="one_signer">חותם יחיד</option>
                             <option value="two_signers">שני חותמים</option>
@@ -323,6 +361,21 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- אישור מורשי חתימה - העלאת קובץ -->
+                    <div class="form-group" style="margin-top: 1.25rem;">
+                        <label style="color: #dc2626; font-weight: 600;">אישור מורשי חתימה *</label>
+                        <p style="font-size: 0.8rem; color: #6b7280; margin-bottom: 0.5rem;">נא לצרף אישור מורשי חתימה באימות עו"ד / רו"ח</p>
+                        <div class="file-upload-area" id="fileUploadArea" onclick="document.getElementById('authFileInput').click()">
+                            <input type="file" id="authFileInput" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" onchange="handleFileSelect(event)" />
+                            <svg class="file-upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                            </svg>
+                            <div class="file-upload-text" id="fileUploadText">לחצו כאן להעלאת קובץ</div>
+                            <div class="file-upload-hint" id="fileUploadHint">PDF או תמונה (עד 10MB)</div>
+                        </div>
+                    </div>
+
                     <!-- Honeypot -->
                     <div style="position:absolute;left:-9999px;" aria-hidden="true">
                         <label>Website</label>
@@ -334,12 +387,15 @@
                     <span id="errorText"></span>
                 </div>
 
+                <!-- Fix 3: Arrow directions corrected for RTL -->
                 <div class="btn-row">
                     <button class="btn btn-outline" id="prevBtn" onclick="prevStep()" disabled>
-                        הקודם ❯
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                        הקודם
                     </button>
                     <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">
-                        ❮ הבא
+                        הבא
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                     </button>
                     <button class="btn btn-success hidden" id="submitBtn" onclick="submitForm()">
                         ✓ שלח טופס
@@ -354,19 +410,20 @@
 </div>
 
 <script>
-// ⚠️ החלף את ה-URL הזה ב-URL של ה-webhook שלך מתוך הדשבורד
 const WEBHOOK_URL = 'https://pension-flow-79c43c9f.base44.app/api/apps/684b22e06236d9fe79c43c9f/functions/onboardingWebhook';
+const UPLOAD_URL = 'https://pension-flow-79c43c9f.base44.app/api/apps/684b22e06236d9fe79c43c9f/functions/onboardingFileUpload';
 
 let currentStep = 1;
+let authorizationFileUrl = '';
 const stepTitles = ['פרטי החברה', 'אנשי קשר', 'פרטי תשלום', 'מורשי חתימה'];
 
 function val(id) { return document.getElementById(id)?.value?.trim() || ''; }
 
 function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
-function isValidBusinessId(id) { return /^\d{9}$/.test(id); }
-function isValidPhone(p) { return /^0\d{9}$/.test(p.replace(/[-\s]/g, '')); }
+function isValidBusinessId(id) { return /^\\d{9}$/.test(id); }
+function isValidPhone(p) { return /^0\\d{9}$/.test(p.replace(/[-\\s]/g, '')); }
 function isValidIsraeliId(id) {
-    if (!id || !/^\d{5,9}$/.test(id)) return false;
+    if (!id || !/^\\d{5,9}$/.test(id)) return false;
     const p = id.padStart(9, '0');
     let s = 0;
     for (let i = 0; i < 9; i++) { let d = parseInt(p[i]) * ((i % 2) + 1); if (d > 9) d -= 9; s += d; }
@@ -386,6 +443,77 @@ function showError(msg) {
     document.getElementById('errorBox').classList.remove('hidden');
 }
 function hideError() { document.getElementById('errorBox').classList.add('hidden'); }
+
+// File upload handling
+async function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+        alert('ניתן להעלות רק קבצי PDF או תמונה (JPG, PNG)');
+        event.target.value = '';
+        return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+        alert('גודל הקובץ חייב להיות עד 10MB');
+        event.target.value = '';
+        return;
+    }
+
+    const area = document.getElementById('fileUploadArea');
+    const textEl = document.getElementById('fileUploadText');
+    const hintEl = document.getElementById('fileUploadHint');
+    
+    textEl.textContent = 'מעלה קובץ...';
+    hintEl.textContent = '';
+
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const res = await fetch(UPLOAD_URL, {
+            method: 'POST',
+            body: formData
+        });
+        const result = await res.json();
+        
+        if (result.file_url) {
+            authorizationFileUrl = result.file_url;
+            area.classList.add('uploaded');
+            area.onclick = null;
+            textEl.innerHTML = '✓ הקובץ הועלה בהצלחה';
+            textEl.style.color = '#16a34a';
+            textEl.style.fontWeight = '600';
+            hintEl.textContent = file.name;
+            hintEl.insertAdjacentHTML('afterend', '<button class="file-replace-btn" onclick="resetFileUpload(event)">החלף קובץ</button>');
+        } else {
+            throw new Error(result.error || 'שגיאה בהעלאה');
+        }
+    } catch (err) {
+        console.error('Upload error:', err);
+        textEl.textContent = 'לחצו כאן להעלאת קובץ';
+        hintEl.textContent = 'PDF או תמונה (עד 10MB)';
+        alert('שגיאה בהעלאת הקובץ. אנא נסו שוב.');
+    }
+}
+
+function resetFileUpload(e) {
+    if (e) { e.stopPropagation(); e.preventDefault(); }
+    authorizationFileUrl = '';
+    const area = document.getElementById('fileUploadArea');
+    const textEl = document.getElementById('fileUploadText');
+    const hintEl = document.getElementById('fileUploadHint');
+    area.classList.remove('uploaded');
+    area.onclick = function() { document.getElementById('authFileInput').click(); };
+    textEl.textContent = 'לחצו כאן להעלאת קובץ';
+    textEl.style.color = '';
+    textEl.style.fontWeight = '';
+    hintEl.textContent = 'PDF או תמונה (עד 10MB)';
+    document.getElementById('authFileInput').value = '';
+    const btn = area.querySelector('.file-replace-btn');
+    if (btn) btn.remove();
+}
 
 function validateCurrentStep() {
     hideError();
@@ -419,7 +547,7 @@ function validateCurrentStep() {
             if (!val('bank_name') || !val('bank_branch_number') || !val('bank_account_number')) {
                 showError('יש למלא את כל פרטי חשבון הבנק'); return false;
             }
-            if (!val('payment_choice')) { showError('יש לבחור אופן תשלום לפנסיון מלא'); return false; } // הוסף שורה זו
+            if (!val('payment_choice')) { showError('יש לבחור אופן תשלום לפנסיון מלא'); return false; }
             return true;
         case 4:
             if (!val('signature_structure')) { showError('יש לבחור מבנה חתימה'); return false; }
@@ -435,6 +563,7 @@ function validateCurrentStep() {
                 if (!isValidIsraeliId(val('signer_2_id'))) { showError('מספר ת.ז. של מורשה חתימה שני לא תקין'); return false; }
                 if (!isValidEmail(val('signer_2_email'))) { showError('אימייל של מורשה חתימה שני לא תקין'); return false; }
             }
+            if (!authorizationFileUrl) { showError('יש לצרף אישור מורשי חתימה באימות עו"ד / רו"ח'); return false; }
             return true;
     }
     return true;
@@ -504,6 +633,7 @@ async function submitForm() {
         signer_2_id: val('signer_2_id'),
         signer_2_email: val('signer_2_email'),
         payment_choice: val('payment_choice'),
+        authorization_file_url: authorizationFileUrl,
     };
 
     try {
@@ -531,4 +661,4 @@ async function submitForm() {
 
 </body>
 </html>
-
+`;
