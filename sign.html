@@ -228,7 +228,6 @@
 const API_BASE = 'https://pension-flow-79c43c9f.base44.app/api/apps/684b22e06236d9fe79c43c9f/functions';
 const GET_DOCS_URL = API_BASE + '/getSigningDocuments';
 const SUBMIT_URL = API_BASE + '/submitSignatures';
-const WATERMARK_URL = API_BASE + '/watermarkImage';
 
 let state = {
     submissionId: null,
@@ -288,45 +287,9 @@ async function loadDocuments() {
     }
 }
 
-async function watermarkDocImages(containerEl, docName) {
-    var imgs = containerEl.querySelectorAll('img');
-    var urlsToWatermark = [];
-    var urlImgElements = [];
-    
-    imgs.forEach(function(img) {
-        var src = img.getAttribute('src') || '';
-        // Skip logos
-        if (src.indexOf('logo') !== -1) return;
-        // Skip data URIs entirely - SVG watermarks already applied server-side,
-        // and base64 images (png/jpeg) from PM fields are also already watermarked server-side
-        if (src.startsWith('data:')) return;
-        // HTTP URLs - batch watermark on server
-        if (src.startsWith('http')) {
-            urlsToWatermark.push(src);
-            urlImgElements.push(img);
-        }
-    });
-    
-    // Batch watermark URL images on server
-    if (urlsToWatermark.length === 0) return;
-    
-    try {
-        var results = await getServerWatermarkForUrls(urlsToWatermark, docName);
-        urlImgElements.forEach(function(img) {
-            var originalSrc = img.getAttribute('src');
-            if (results[originalSrc]) {
-                img.src = results[originalSrc];
-            }
-        });
-    } catch (err) {
-        console.log('Batch watermark failed:', err);
-    }
-}
-
 function renderReviewStep() {
     document.getElementById('companyName').textContent = state.companyData.name;
     
-    // Show greeting with signer name
     var signerTitle = state.signerIndex === 1 ? 'מורשה חתימה ראשון' : 'מורשה חתימה שני';
     if (state.signerName) {
         document.getElementById('signerLabel').innerHTML = 'שלום ' + state.signerName + ', <span style="color:#6b7280;font-weight:400;">(' + signerTitle + ')</span>';
@@ -354,9 +317,6 @@ function renderReviewStep() {
         contentDiv.className = 'doc-content hidden';
         contentDiv.id = 'content-' + doc.id;
         contentDiv.innerHTML = htmlContent;
-
-        // Watermark all images in document content (PM signatures/stamps)
-        watermarkDocImages(contentDiv, docName);
 
         var footerDiv = document.createElement('div');
         footerDiv.className = 'doc-footer hidden';
@@ -390,7 +350,6 @@ function renderReviewStep() {
         list.appendChild(item);
     });
 
-    // Auto-expand first
     if (state.documents.length > 0) {
         toggleDoc(state.documents[0].id);
     }
@@ -401,7 +360,6 @@ function toggleDoc(docId) {
     const footer = document.getElementById('footer-' + docId);
     const isHidden = content.classList.contains('hidden');
     
-    // Close all
     state.documents.forEach(d => {
         document.getElementById('content-' + d.id)?.classList.add('hidden');
         document.getElementById('footer-' + d.id)?.classList.add('hidden');
@@ -513,57 +471,6 @@ function clearCanvas() {
     canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
 }
 
-async function getServerWatermark(imageData, imageType, docName) {
-    try {
-        var res = await fetch(WATERMARK_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                image_data: imageData,
-                image_type: imageType,
-                submission_id: state.submissionId,
-                token: state.token,
-                company_name: state.companyData ? state.companyData.name : '',
-                signer_name: state.signerName || '',
-                document_name: docName || ''
-            })
-        });
-        var data = await res.json();
-        if (data.success && data.watermarked_image) {
-            return data.watermarked_image;
-        }
-        return imageData;
-    } catch (err) {
-        console.log('Server watermark failed, using original:', err);
-        return imageData;
-    }
-}
-
-async function getServerWatermarkForUrls(imageUrls, docName) {
-    try {
-        var res = await fetch(WATERMARK_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                image_urls: imageUrls,
-                submission_id: state.submissionId,
-                token: state.token,
-                company_name: state.companyData ? state.companyData.name : '',
-                signer_name: state.signerName || '',
-                document_name: docName || ''
-            })
-        });
-        var data = await res.json();
-        if (data.success && data.watermarked_images) {
-            return data.watermarked_images;
-        }
-        return {};
-    } catch (err) {
-        console.log('Server watermark for URLs failed:', err);
-        return {};
-    }
-}
-
 async function saveSignature() {
     const canvas = document.getElementById('sigCanvas');
     const ctx = canvas.getContext('2d');
@@ -571,9 +478,7 @@ async function saveSignature() {
     if (!px.some(p => p !== 0)) { alert('יש לחתום לפני השמירה'); return; }
     
     state.signatureData = canvas.toDataURL('image/png');
-    // Send to server for watermarking, display watermarked preview
-    var wmPreview = await getServerWatermark(state.signatureData, 'signature', '');
-    document.getElementById('savedSignatureImg').src = wmPreview;
+    document.getElementById('savedSignatureImg').src = state.signatureData;
     hide('signatureInput');
     show('signatureSaved');
     hide('signatureWarning');
@@ -673,8 +578,7 @@ async function generateVirtualStamp() {
     }
     
     state.stampData = canvas.toDataURL('image/png');
-    var wmPreview = await getServerWatermark(state.stampData, 'stamp', '');
-    document.getElementById('savedStampImg').src = wmPreview;
+    document.getElementById('savedStampImg').src = state.stampData;
     hide('stampInput');
     show('stampSaved');
     updateSubmitBtn();
@@ -686,8 +590,7 @@ function handleStampUpload(e) {
     const reader = new FileReader();
     reader.onload = async (ev) => {
         state.stampData = ev.target.result;
-        var wmPreview = await getServerWatermark(state.stampData, 'stamp', '');
-        document.getElementById('savedStampImg').src = wmPreview;
+        document.getElementById('savedStampImg').src = state.stampData;
         hide('stampInput');
         show('stampSaved');
         updateSubmitBtn();
