@@ -132,9 +132,12 @@
         <div id="documentsList"></div>
 
         <div class="card">
-            <div class="card-body" style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;">
-                <p id="continueMessage" style="color:#6b7280;font-size:0.875rem;"></p>
-                <button class="btn btn-green" id="continueToSignBtn" disabled onclick="goToSignStep()">המשך לחתימה ✍️</button>
+            <div class="card-body" style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:#6b7280;font-size:0.875rem;">אחרי צפייה בכל המסמכים, תוכל להמשיך לחתימה</span>
+                <button class="btn btn-primary" id="continueToSignBtn" disabled onclick="goToSignStep()">↓ בחר חתימה</button>
+            </div>
+            <div style="padding:1rem 1.5rem;border-top:1px solid #e5e7eb;background:#f9fafb;">
+                <p id="continueMessage" style="font-size:0.8rem;color:#6b7280;"></p>
             </div>
         </div>
     </div>
@@ -143,55 +146,41 @@
     <div id="signStep" class="hidden">
         <div class="card">
             <div class="card-header green">
-                <h2 style="color:#166534;font-size:1.1rem;margin:0;">✍️ חתימה על <span id="docCountLabel"></span> מסמכים</h2>
+                <h2 style="color:#166534;font-size:1.1rem;margin:0;">✒️ חתימה</h2>
             </div>
             <div class="card-body">
-                <p id="signInstructions" style="color:#6b7280;font-size:0.875rem;"></p>
-            </div>
-        </div>
-
-        <!-- Signature -->
-        <div class="card">
-            <div class="card-header"><h3 style="font-size:1rem;margin:0;">חתימה</h3></div>
-            <div class="card-body">
+                <p style="color:#374151;margin-bottom:1rem;font-weight:500;">שלב 1: צייר את החתימה שלך</p>
+                <div class="sig-canvas-wrap"><canvas id="sigCanvas"></canvas></div>
                 <div id="signatureInput">
-                    <div class="sig-canvas-wrap">
-                        <canvas id="sigCanvas" width="500" height="150"></canvas>
-                    </div>
                     <div class="btn-row">
-                        <button class="btn btn-outline" onclick="clearCanvas()">🔄 נקה</button>
-                        <button class="btn btn-primary" onclick="saveSignature()" style="flex:1;">✓ שמור חתימה</button>
+                        <button class="btn btn-outline" onclick="clearCanvas()" style="flex:1;">🗑️ נקה</button>
+                        <button class="btn btn-primary" onclick="saveSignature()" style="flex:1;">💾 שמור חתימה</button>
                     </div>
                 </div>
                 <div id="signatureSaved" class="hidden">
                     <div class="sig-preview">
                         <p style="font-size:0.8rem;color:#166534;margin-bottom:0.5rem;">החתימה נשמרה:</p>
-                        <img id="savedSignatureImg" alt="חתימה" />
+                        <img id="savedSignatureImg" alt="חתימה" style="max-height:80px;" />
                     </div>
-                    <button class="btn btn-outline btn-block" onclick="resetSignature()">🔄 חתום מחדש</button>
+                    <button class="btn btn-outline btn-block" onclick="resetSignature()">🔄 שנה חתימה</button>
                 </div>
             </div>
         </div>
 
-        <!-- Stamp (signer 1 only) -->
-        <div id="stampSection" class="card hidden">
-            <div class="card-header"><h3 style="font-size:1rem;margin:0;">חותמת חברה</h3></div>
+        <div class="card">
             <div class="card-body">
+                <p style="color:#374151;margin-bottom:1rem;font-weight:500;">שלב 2: בחר חותמת</p>
+                <div class="stamp-options">
+                    <button class="stamp-btn active" id="virtualStampBtn" onclick="setStampMode('virtual')">✓ חותמת חד-פעמית</button>
+                    <button class="stamp-btn" id="uploadStampBtn" onclick="setStampMode('upload')">📤 העלה חותמת</button>
+                </div>
                 <div id="stampInput">
-                    <div class="stamp-options">
-                        <div class="stamp-btn active" id="virtualStampBtn" onclick="setStampMode('virtual')">🏢 חותמת וירטואלית</div>
-                        <div class="stamp-btn" id="uploadStampBtn" onclick="setStampMode('upload')">📤 העלאת חותמת</div>
-                    </div>
                     <div id="virtualStampSection">
                         <div class="stamp-info">
-                            <p style="font-size:0.8rem;color:#1e40af;margin-bottom:0.5rem;font-weight:500;">חותמת וירטואלית תכלול:</p>
-                            <ul style="font-size:0.8rem;color:#1e40af;padding-right:1.25rem;">
-                                <li id="stampCompanyName"></li>
-                                <li id="stampBusinessId"></li>
-                                <li id="stampAddress"></li>
-                            </ul>
+                            <p style="font-size:0.85rem;color:#1e40af;margin-bottom:0.5rem;">חותמת חד-פעמית מחושבת</p>
+                            <p style="font-size:0.75rem;color:#0a3a66;">חותמת זו תישמר עם המסמכים החתומים כדי לאמת את זהות החותם</p>
                         </div>
-                        <button class="btn btn-primary btn-block" onclick="generateVirtualStamp()">🏢 צור חותמת וירטואלית</button>
+                        <button class="btn btn-green btn-block" onclick="generateVirtualStamp()">🔐 צור חותמת אמת</button>
                     </div>
                     <div id="uploadStampSection" class="hidden">
                         <p style="font-size:0.8rem;color:#6b7280;margin-bottom:0.75rem;">העלה תמונת חותמת מהמחשב (PNG, JPG)</p>
@@ -253,7 +242,31 @@ state.signerIndex = state.signer === 'signer_2' ? 2 : 1;
 if (!state.submissionId || !state.token) {
     showError('קישור חתימה לא תקין - חסרים פרמטרים');
 } else {
+    logSigningEvent('page_loaded', 'in_progress');
     loadDocuments();
+}
+
+async function logSigningEvent(eventType, status = 'success', errorMessage = null) {
+    try {
+        const logUrl = 'https://pension-flow-79c43c9f.base44.app/api/apps/684b22e06236d9fe79c43c9f/functions/logSigningEvent';
+        await fetch(logUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                submission_id: state.submissionId,
+                event_type: eventType,
+                status: status,
+                error_message: errorMessage,
+                details: {
+                    signer_index: state.signerIndex,
+                    user_agent: navigator.userAgent,
+                    timestamp: new Date().toISOString()
+                }
+            })
+        }).catch(err => console.error('Failed to log event:', err));
+    } catch (err) {
+        console.error('Error in logSigningEvent:', err);
+    }
 }
 
 async function loadDocuments() {
@@ -270,30 +283,39 @@ async function loadDocuments() {
         const data = await res.json();
         
         if (!data.success) {
+            logSigningEvent('error_occurred', 'failure', data.error || 'שגיאה בטעינת המסמכים');
             showError(data.error || 'שגיאה בטעינת המסמכים');
             return;
         }
 
-        state.companyData = data.companyData;
-        state.documents = data.documents;
-        state.signerIndex = data.signerIndex;
-        state.signerName = data.signerName || '';
-
-        renderReviewStep();
-        show('reviewStep');
+        // טיעוד הצלחת טעינת מסמכים
+        logSigningEvent('documents_fetched', 'success');
+        
+        state.documents = data.documents || [];
+        state.companyData = data.company_data || {};
+        
+        document.getElementById('companyName').textContent = state.companyData.company_name || 'טוענים...';
+        
+        if (data.signer_name) {
+            state.signerName = data.signer_name;
+        }
+        
         hide('loadingScreen');
+        renderDocumentsList();
+        show('reviewStep');
     } catch (err) {
-        showError('שגיאה בטעינת המסמכים. אנא נסה שוב.');
+        logSigningEvent('error_occurred', 'failure', err.message || 'שגיאה בטעינת המסמכים');
+        showError('שגיאה בטעינת המסמכים');
     }
 }
 
-function renderReviewStep() {
-    document.getElementById('companyName').textContent = state.companyData.name;
+function renderDocumentsList() {
+    const signer = state.signerIndex === 1 ? 'signer_1' : 'signer_2';
+    const signerTitle = state.signerIndex === 1 
+        ? (state.signerName ? `חותם 1: ${state.signerName}` : 'חותם 1')
+        : (state.signerName ? `חותם 2: ${state.signerName}` : 'חותם 2');
     
-    var signerTitle = state.signerIndex === 1 ? 'מורשה חתימה ראשון' : 'מורשה חתימה שני';
-    if (state.signerName) {
-        document.getElementById('signerLabel').innerHTML = 'שלום ' + state.signerName + ', <span style="color:#6b7280;font-weight:400;">(' + signerTitle + ')</span>';
-    } else {
+    if (state.signerIndex !== 1) {
         document.getElementById('signerLabel').textContent = signerTitle;
     }
     updateViewedCount();
@@ -398,21 +420,7 @@ function updateViewedCount() {
 function goToSignStep() {
     hide('reviewStep');
     show('signStep');
-    
-    document.getElementById('docCountLabel').textContent = state.documents.length;
-    
-    if (state.signerIndex === 1) {
-        document.getElementById('signInstructions').textContent = 'יש להוסיף חתימה וחותמת. החתימה והחותמת יוחלו על כל המסמכים.';
-        show('stampSection');
-        document.getElementById('stampCompanyName').textContent = '• שם החברה: ' + state.companyData.name;
-        document.getElementById('stampBusinessId').textContent = '• ח.פ.: ' + state.companyData.businessId;
-        document.getElementById('stampAddress').textContent = '• כתובת: ' + state.companyData.address;
-    } else {
-        document.getElementById('signInstructions').textContent = 'יש להוסיף חתימה בלבד. החותמת כבר נוספה על ידי מורשה החתימה הראשון.';
-    }
-
-    initCanvas();
-    updateSubmitBtn();
+    initSignatureCanvas();
 }
 
 function goToReviewStep() {
@@ -420,51 +428,67 @@ function goToReviewStep() {
     show('reviewStep');
 }
 
-// Canvas
-let isDrawing = false;
-function initCanvas() {
+// Signature canvas
+function initSignatureCanvas() {
     const canvas = document.getElementById('sigCanvas');
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = 200;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function getCoords(e, canvas) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    if (e.touches) {
+        return {
+            x: (e.touches[0].clientX - rect.left) * scaleX,
+            y: (e.touches[0].clientY - rect.top) * scaleY
+        };
+    }
+    return {
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
+    };
+}
+
+const canvas = document.getElementById('sigCanvas');
+if (canvas) {
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+
+    function startDraw(e) {
+        isDrawing = true;
+        ctx.beginPath();
+        const coords = getCoords(e, canvas);
+        ctx.moveTo(coords.x, coords.y);
+    }
+
+    function draw(e) {
+        if (!isDrawing) return;
+        const coords = getCoords(e, canvas);
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = '#000';
+        ctx.lineTo(coords.x, coords.y);
+        ctx.stroke();
+    }
+
+    function stopDraw() { isDrawing = false; ctx.closePath(); }
+
     canvas.addEventListener('mousedown', startDraw);
-    canvas.addEventListener('mousemove', doDraw);
+    canvas.addEventListener('mousemove', draw);
     canvas.addEventListener('mouseup', stopDraw);
-    canvas.addEventListener('mouseleave', stopDraw);
-    canvas.addEventListener('touchstart', startDraw, { passive: false });
-    canvas.addEventListener('touchmove', doDraw, { passive: false });
+    canvas.addEventListener('mouseout', stopDraw);
+    canvas.addEventListener('touchstart', startDraw);
+    canvas.addEventListener('touchmove', draw);
     canvas.addEventListener('touchend', stopDraw);
 }
-
-function getPos(e) {
-    const canvas = document.getElementById('sigCanvas');
-    const rect = canvas.getBoundingClientRect();
-    const sx = canvas.width / rect.width;
-    const sy = canvas.height / rect.height;
-    const cx = e.clientX || e.touches?.[0]?.clientX || 0;
-    const cy = e.clientY || e.touches?.[0]?.clientY || 0;
-    return { x: (cx - rect.left) * sx, y: (cy - rect.top) * sy };
-}
-
-function startDraw(e) {
-    e.preventDefault();
-    isDrawing = true;
-    const ctx = document.getElementById('sigCanvas').getContext('2d');
-    const p = getPos(e);
-    ctx.beginPath();
-    ctx.moveTo(p.x, p.y);
-}
-
-function doDraw(e) {
-    e.preventDefault();
-    if (!isDrawing) return;
-    const ctx = document.getElementById('sigCanvas').getContext('2d');
-    const p = getPos(e);
-    ctx.lineTo(p.x, p.y);
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    ctx.stroke();
-}
-
-function stopDraw() { isDrawing = false; }
 
 function clearCanvas() {
     const canvas = document.getElementById('sigCanvas');
@@ -516,55 +540,42 @@ async function generateVirtualStamp() {
     const cx = size/2, cy = size/2, R = 185;
     const color = '#0a1e5e';
     
-    ctx.strokeStyle = color; ctx.lineWidth = 7;
-    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI*2); ctx.stroke();
-    ctx.lineWidth = 2.5;
-    ctx.beginPath(); ctx.arc(cx, cy, R-11, 0, Math.PI*2); ctx.stroke();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, 2*Math.PI);
+    ctx.stroke();
     
-    // Company name arc
-    const name = cd.name || '';
-    ctx.save(); ctx.translate(cx, cy);
-    ctx.fillStyle = color; ctx.font = 'bold 31px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    const arcSpan = Math.min(Math.PI*1.5, Math.max(Math.PI*0.9, name.length*0.13));
-    const arcStart = -Math.PI/2 - arcSpan/2;
-    const arcStep = name.length > 1 ? arcSpan/(name.length-1) : 0;
-    const textR = R - 30;
-    for (let i=0; i<name.length; i++) {
-        const ci = name.length-1-i;
-        const a = arcStart + arcStep*i;
-        ctx.save();
-        ctx.translate(Math.cos(a)*textR, Math.sin(a)*textR);
-        ctx.rotate(a + Math.PI/2);
-        ctx.fillText(name[ci], 0, 0);
-        ctx.restore();
-    }
-    ctx.restore();
+    ctx.beginPath();
+    ctx.arc(cx, cy, R-10, 0, 2*Math.PI);
+    ctx.stroke();
     
-    // Inner circle
-    ctx.strokeStyle = color; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(cx, cy, R-52, 0, Math.PI*2); ctx.stroke();
+    ctx.fillStyle = color;
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(cd.company_name || 'חותם', cx, cy-20);
+    ctx.font = '16px Arial';
+    ctx.fillText('תו אימות', cx, cy+10);
     
-    // Lines
-    ctx.strokeStyle = color; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(cx-65, cy-22); ctx.lineTo(cx+65, cy-22); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(cx-65, cy+22); ctx.lineTo(cx+65, cy+22); ctx.stroke();
+    const date = new Date();
+    const dateStr = date.toLocaleDateString('he-IL');
+    ctx.font = 'bold 14px Arial';
+    ctx.fillText(dateStr, cx, cy+50);
     
-    // Business ID
-    ctx.fillStyle = color; ctx.font = 'bold 26px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('ח.פ. ' + (cd.businessId || ''), cx, cy);
+    const addr = (cd.address || 'כתובת').split(' ').reverse();
+    const aStart = Math.PI/2;
+    const aStep = (2*Math.PI*0.8) / (addr.length || 1);
+    const textR = R - 40;
     
-    // Date
-    ctx.font = 'bold 17px Arial';
-    ctx.fillText(new Date().toLocaleDateString('he-IL'), cx, cy+40);
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = color;
     
-    // Address arc bottom
-    const addr = (cd.address || '').substring(0, 25);
-    if (addr) {
-        ctx.save(); ctx.translate(cx, cy);
-        ctx.fillStyle = color; ctx.font = 'bold 18px Arial';
-        const aSpan = Math.min(Math.PI*1.1, Math.max(Math.PI*0.5, addr.length*0.07));
-        const aStart = Math.PI/2 + aSpan/2;
-        const aStep = addr.length > 1 ? aSpan/(addr.length-1) : 0;
+    if (addr.length > 0) {
         for (let i=0; i<addr.length; i++) {
             const ci = addr.length-1-i;
             const a = aStart - aStep*i;
@@ -619,6 +630,8 @@ async function submitSignatures() {
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2px;"></span> שולח...';
 
+    logSigningEvent('signature_submitted', 'in_progress');
+
     try {
         const res = await fetch(SUBMIT_URL, {
             method: 'POST',
@@ -636,6 +649,7 @@ async function submitSignatures() {
         const data = await res.json();
 
         if (data.success || data.documents_updated) {
+            logSigningEvent('process_completed', 'success');
             hide('signStep');
             const isLast = state.signerIndex === 2 || state.documents.some(d => !d.requires_two_signers);
             document.getElementById('successTitle').textContent = isLast ? 'כל המסמכים נחתמו בהצלחה!' : 'חתימתך נשמרה בהצלחה!';
@@ -644,11 +658,13 @@ async function submitSignatures() {
                 : 'תודה לך על חתימת המסמכים. עותקים יישלחו לאחר השלמת כל החתימות.';
             show('successScreen');
         } else {
+            logSigningEvent('error_occurred', 'failure', data.error || 'שגיאה בשליחת החתימות');
             alert(data.error || 'שגיאה בשליחת החתימות');
             btn.disabled = false;
             btn.innerHTML = '✓ שלח את כל החתימות';
         }
     } catch (err) {
+        logSigningEvent('error_occurred', 'failure', err.message || 'שגיאה בשליחת החתימות');
         alert('שגיאה בשליחת החתימות. אנא נסה שוב.');
         btn.disabled = false;
         btn.innerHTML = '✓ שלח את כל החתימות';
