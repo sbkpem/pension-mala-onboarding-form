@@ -9,6 +9,7 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #eff6ff, #e0e7ff); min-height: 100vh; direction: rtl; }
         .container { max-width: 900px; margin: 0 auto; padding: 1rem; }
 
+        /* Status screens */
         .status-screen { text-align: center; padding: 3rem 2rem; background: white; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); max-width: 500px; margin: 4rem auto; }
         .status-icon { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; }
         .status-icon.loading { background: #dbeafe; }
@@ -17,12 +18,14 @@
         .spinner { width: 40px; height: 40px; border: 4px solid rgba(37,99,235,0.2); border-radius: 50%; border-top-color: #2563eb; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* Cards */
         .card { background: white; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 1rem; }
         .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid #e5e7eb; }
         .card-header.blue { background: linear-gradient(to left, #eff6ff, #dbeafe); }
         .card-header.green { background: linear-gradient(to left, #f0fdf4, #dcfce7); }
         .card-body { padding: 1.5rem; }
 
+        /* Document viewer */
         .doc-item { border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 0.75rem; overflow: hidden; }
         .doc-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; cursor: pointer; background: #fafafa; }
         .doc-header:hover { background: #f3f4f6; }
@@ -41,11 +44,13 @@
         .badge-orange { background: #ffedd5; color: #9a3412; }
         .badge-blue { background: #dbeafe; color: #1e40af; }
 
+        /* Signature area */
         .sig-canvas-wrap { border: 2px dashed #d1d5db; border-radius: 8px; background: white; padding: 0.5rem; margin-bottom: 1rem; }
         .sig-canvas-wrap canvas { width: 100%; cursor: crosshair; touch-action: none; display: block; }
         .sig-preview { border: 2px solid #86efac; border-radius: 8px; background: #f0fdf4; padding: 1rem; text-align: center; margin-bottom: 1rem; }
         .sig-preview img { max-height: 80px; }
 
+        /* Stamp area */
         .stamp-options { display: flex; gap: 0.75rem; margin-bottom: 1rem; }
         .stamp-btn { flex: 1; padding: 0.625rem; border-radius: 8px; border: 1px solid #d1d5db; background: white; cursor: pointer; font-size: 0.875rem; text-align: center; transition: all 0.2s; }
         .stamp-btn.active { background: #2563eb; color: white; border-color: #2563eb; }
@@ -77,12 +82,14 @@
 <body>
 
 <div class="container">
+    <!-- Loading -->
     <div id="loadingScreen" class="status-screen">
         <div class="status-icon loading"><div class="spinner"></div></div>
         <h2 style="font-size:1.25rem;color:#111827;margin-bottom:0.5rem;">טוען מסמכים...</h2>
         <p style="color:#6b7280;">אנא המתן בזמן שאנחנו מכינים את המסמכים שלך</p>
     </div>
 
+    <!-- Error -->
     <div id="errorScreen" class="status-screen hidden">
         <div class="status-icon error">
             <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="#dc2626" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
@@ -92,6 +99,7 @@
         <p style="font-size:0.8rem;color:#9ca3af;">אנא נסה שוב או פנה לתמיכה</p>
     </div>
 
+    <!-- Success -->
     <div id="successScreen" class="status-screen hidden">
         <div class="status-icon success">
             <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="#16a34a" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -104,6 +112,7 @@
         <p style="font-size:0.75rem;color:#9ca3af;margin-top:1rem;">ניתן לסגור חלון זה בבטחה</p>
     </div>
 
+    <!-- Review Step -->
     <div id="reviewStep" class="hidden">
         <div class="card">
             <div class="card-header blue">
@@ -130,6 +139,7 @@
         </div>
     </div>
 
+    <!-- Sign Step -->
     <div id="signStep" class="hidden">
         <div class="card">
             <div class="card-header green">
@@ -140,6 +150,7 @@
             </div>
         </div>
 
+        <!-- Signature -->
         <div class="card">
             <div class="card-header"><h3 style="font-size:1rem;margin:0;">חתימה</h3></div>
             <div class="card-body">
@@ -162,6 +173,7 @@
             </div>
         </div>
 
+        <!-- Stamp (signer 1 only) -->
         <div id="stampSection" class="card hidden">
             <div class="card-header"><h3 style="font-size:1rem;margin:0;">חותמת חברה</h3></div>
             <div class="card-body">
@@ -197,6 +209,7 @@
             </div>
         </div>
 
+        <!-- Submit -->
         <div class="card">
             <div class="card-body">
                 <div id="signatureWarning" class="warning-box">
@@ -214,7 +227,7 @@
 <script>
 const API_BASE = 'https://pension-flow-79c43c9f.base44.app/api/apps/684b22e06236d9fe79c43c9f/functions';
 const GET_DOCS_URL = API_BASE + '/getSigningDocuments';
-const SUBMIT_URL = API_BASE + '/submitSignatures';
+const SUBMIT_URL = API_BASE + '/saveConsolidatedSignatures';
 
 let state = {
     submissionId: null,
@@ -230,6 +243,7 @@ let state = {
     stampMode: 'virtual'
 };
 
+// Parse URL params
 const urlParams = new URLSearchParams(window.location.search);
 state.submissionId = urlParams.get('submission_id');
 state.token = urlParams.get('token');
@@ -406,6 +420,7 @@ function goToReviewStep() {
     show('reviewStep');
 }
 
+// Canvas
 let isDrawing = false;
 function initCanvas() {
     const canvas = document.getElementById('sigCanvas');
@@ -479,6 +494,7 @@ function resetSignature() {
     updateSubmitBtn();
 }
 
+// Stamp
 function setStampMode(mode) {
     state.stampMode = mode;
     document.getElementById('virtualStampBtn').className = 'stamp-btn' + (mode === 'virtual' ? ' active' : '');
@@ -505,6 +521,7 @@ async function generateVirtualStamp() {
     ctx.lineWidth = 2.5;
     ctx.beginPath(); ctx.arc(cx, cy, R-11, 0, Math.PI*2); ctx.stroke();
     
+    // Company name arc
     const name = cd.name || '';
     ctx.save(); ctx.translate(cx, cy);
     ctx.fillStyle = color; ctx.font = 'bold 31px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -523,19 +540,24 @@ async function generateVirtualStamp() {
     }
     ctx.restore();
     
+    // Inner circle
     ctx.strokeStyle = color; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.arc(cx, cy, R-52, 0, Math.PI*2); ctx.stroke();
     
+    // Lines
     ctx.strokeStyle = color; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(cx-65, cy-22); ctx.lineTo(cx+65, cy-22); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(cx-65, cy+22); ctx.lineTo(cx+65, cy+22); ctx.stroke();
     
+    // Business ID
     ctx.fillStyle = color; ctx.font = 'bold 26px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('ח.פ. ' + (cd.businessId || ''), cx, cy);
     
+    // Date
     ctx.font = 'bold 17px Arial';
     ctx.fillText(new Date().toLocaleDateString('he-IL'), cx, cy+40);
     
+    // Address arc bottom
     const addr = (cd.address || '').substring(0, 25);
     if (addr) {
         ctx.save(); ctx.translate(cx, cy);
