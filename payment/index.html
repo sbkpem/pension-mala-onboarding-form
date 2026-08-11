@@ -38,20 +38,22 @@
         if(data.session.status === 'completed') return showSuccess(data.session.selected_method);
         if(data.session.status === 'pending_approval') return showPending();
         const method = data.session.selected_method;
-        $('title').textContent = `עדכון אמצעי תשלום - ${esc(data.session.company_name)}`;
+        $('title').textContent = `עדכון אמצעי תשלום - ${data.session.company_name || ''}`;
         $('subtitle').textContent = method === 'bank_debit' ? 'נא להזין פרטי הרשאה לחיוב חשבון. לאחר השליחה הפרטים יועברו לבדיקה.' : 'נא להזין פרטי כרטיס אשראי. פרטי האשראי מועברים באופן מאובטח ואינם נשמרים אצלנו.';
         method === 'bank_debit' ? renderBankForm(data.session) : renderCreditForm(data.sumit);
       }catch(e){ setError(e.message || 'הקישור לא תקין או שפג תוקפו.'); }
     }
     function renderCreditForm(sumit){
-      $('body').innerHTML = `<form id="ccForm" data-og="payment-form" method="post"><div id="formError" class="msg err hide"></div><div class="og-errors msg err hide"></div><div class="grid"><div class="field full"><label>מספר כרטיס</label><input data-og="cardnumber" inputmode="numeric" autocomplete="cc-number"></div><div class="field"><label>חודש תפוגה</label><input data-og="expirationmonth" maxlength="2" inputmode="numeric" autocomplete="cc-exp-month"></div><div class="field"><label>שנת תפוגה</label><input data-og="expirationyear" maxlength="4" inputmode="numeric" autocomplete="cc-exp-year"></div><div class="field"><label>CVV</label><input data-og="cvv" maxlength="4" inputmode="numeric" autocomplete="cc-csc"></div><div class="field"><label>ת.ז. בעל הכרטיס</label><input data-og="citizenid" inputmode="numeric"></div></div><button id="saveBtn" class="btn" type="submit" disabled>שמירת כרטיס אשראי מאובטחת</button><p class="muted">פרטי האשראי מועברים באופן מאובטח ואינם נשמרים אצלנו.</p></form>`;
+      $('body').innerHTML = `<form id="ccForm" data-og="payment-form" method="post"><div id="formError" class="msg err hide"></div><div class="og-errors msg err hide"></div><div class="grid"><div class="field full"><label>מספר כרטיס</label><input data-og="cardnumber" inputmode="numeric" autocomplete="cc-number"></div><div class="field full"><label>תוקף כרטיס</label><input id="expiry" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/YY או MMYY"><input type="hidden" data-og="expirationmonth" id="expMonth"><input type="hidden" data-og="expirationyear" id="expYear"></div></div><button id="saveBtn" class="btn" type="submit" disabled>עדכון כרטיס אשראי מאובטח</button><p class="muted">פרטי האשראי מועברים ישירות ובאופן מאובטח לספק הסליקה ואינם נשמרים אצלנו.</p></form>`;
+      $('expiry').oninput = syncExpiry;
       loadScript('https://code.jquery.com/jquery-3.7.1.min.js').then(() => loadScript('https://app.sumit.co.il/scripts/payments.js')).then(() => { window.OfficeGuy.Payments.BindFormSubmit({ CompanyID: sumit.companyId, APIPublicKey: sumit.apiPublicKey, FormSelector: 'form[data-og="payment-form"]', Callback: saveCreditCard }); $('saveBtn').disabled = false; }).catch(() => showFormError('טעינת רכיב האשראי נכשלה. נא לרענן את העמוד ולנסות שוב.'));
     }
+    function syncExpiry(){ const d = $('expiry').value.replace(/\D/g,'').slice(0,6); $('expMonth').value = d.slice(0,2); const y = d.slice(2); $('expYear').value = y.length === 2 ? `20${y}` : y; }
     async function saveCreditCard(singleUseToken){
       if(!singleUseToken) return showFormError('לא ניתן היה לאמת את פרטי האשראי.');
-      const btn = $('saveBtn'); btn.disabled = true; btn.textContent = 'שומר...';
+      const btn = $('saveBtn'); btn.disabled = true; btn.textContent = 'מעביר באופן מאובטח...';
       try{ await post('updateSumitPaymentMethod', { token, single_use_token: singleUseToken }); showSuccess('credit_card'); }
-      catch(e){ showFormError(e.message || 'שמירת אמצעי התשלום נכשלה.'); btn.disabled = false; btn.textContent = 'שמירת כרטיס אשראי מאובטחת'; }
+      catch(e){ showFormError(e.message || 'עדכון אמצעי התשלום נכשל.'); btn.disabled = false; btn.textContent = 'עדכון כרטיס אשראי מאובטח'; }
     }
     function renderBankForm(s){
       $('body').innerHTML = `<div id="formError" class="msg err hide"></div><div class="grid"><div class="field"><label>מספר בנק</label><input id="bank" value="${esc(s.bank_number)}" inputmode="numeric"></div><div class="field"><label>מספר סניף</label><input id="branch" value="${esc(s.branch_number)}" inputmode="numeric"></div><div class="field"><label>מספר חשבון</label><input id="account" value="${esc(s.account_number)}" inputmode="numeric"></div></div><label class="drop"><input id="file" type="file" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" hidden><strong id="fileText">לחצו לצירוף אסמכתת הרשאה לחיוב חשבון</strong><div class="muted">PDF או תמונה עד 10MB</div></label><button id="saveBank" class="btn green" disabled>שליחת פרטי ההרשאה</button><p class="muted">הפרטים יישמרו במערכת ויועברו לבדיקה.</p>`;
