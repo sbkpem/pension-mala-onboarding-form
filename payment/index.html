@@ -5,114 +5,60 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>עדכון אמצעי תשלום</title>
   <style>
-    *{box-sizing:border-box}body{margin:0;font-family:Arial,"Noto Sans Hebrew",sans-serif;background:linear-gradient(135deg,#eff6ff,#f8fafc);color:#172033;min-height:100vh}
+    @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&family=Heebo:wght@500;700;800&display=swap');
+    *{box-sizing:border-box}body{margin:0;font-family:"Assistant","Heebo",Arial,sans-serif;background:linear-gradient(135deg,#eef6ff,#f8fafc);color:#172033;min-height:100vh;font-size:16px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
     .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px}.card{width:100%;max-width:720px;background:#fff;border:1px solid #e5e7eb;border-radius:22px;box-shadow:0 24px 70px rgba(15,23,42,.13);overflow:hidden}
-    .head{padding:30px 26px;text-align:center;background:linear-gradient(135deg,#f8fbff,#eef6ff);border-bottom:1px solid #e5e7eb}.logo{font-weight:800;color:#1d4ed8;font-size:22px;margin-bottom:10px}.title{font-size:26px;font-weight:800;margin:0;color:#0f172a}.sub{margin:10px 0 0;color:#64748b;line-height:1.6}
-    .body{padding:28px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.full{grid-column:1/-1}.field{display:flex;flex-direction:column;gap:7px}label{font-weight:700;color:#334155;font-size:14px}input{height:44px;border:1px solid #cbd5e1;border-radius:12px;padding:0 12px;font-size:16px;background:#fff}
-    input:focus{outline:2px solid #bfdbfe;border-color:#3b82f6}.msg{padding:14px;border-radius:14px;margin-bottom:18px;line-height:1.6}.err{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}.ok{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;text-align:center}
-    .btn{width:100%;height:48px;border:0;border-radius:14px;background:#1d4ed8;color:#fff;font-weight:800;font-size:16px;cursor:pointer;margin-top:18px}.btn:hover{background:#1e40af}.btn:disabled{opacity:.55;cursor:not-allowed}.green{background:#047857}.green:hover{background:#065f46}
+    .head{padding:30px 26px;text-align:center;background:linear-gradient(135deg,#f8fbff,#eef6ff);border-bottom:1px solid #e5e7eb}.logo{font-family:"Heebo","Assistant",sans-serif;font-weight:800;color:#1d4ed8;font-size:22px;margin-bottom:10px}.title{font-family:"Heebo","Assistant",sans-serif;font-size:26px;font-weight:800;margin:0;color:#0f172a}.sub{margin:10px 0 0;color:#64748b;line-height:1.7}
+    .body{padding:28px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.full{grid-column:1/-1}.field{display:flex;flex-direction:column;gap:7px}label{font-weight:700;color:#334155;font-size:14px}input{height:44px;border:1px solid #cbd5e1;border-radius:12px;padding:0 12px;font:600 16px "Assistant",Arial;background:#fff}
+    input:focus{outline:2px solid #bfdbfe;border-color:#3b82f6}.msg{padding:14px;border-radius:14px;margin-bottom:18px;line-height:1.7}.err{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}.ok{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;text-align:center}.wait{background:#fffbeb;color:#92400e;border:1px solid #fde68a;text-align:center}
+    .btn{width:100%;height:48px;border:0;border-radius:14px;background:#1d4ed8;color:#fff;font-weight:800;font-size:16px;cursor:pointer;margin-top:18px;font-family:"Assistant",Arial}.btn:hover{background:#1e40af}.btn:disabled{opacity:.55;cursor:not-allowed}.green{background:#047857}.green:hover{background:#065f46}
     .drop{display:block;border:2px dashed #cbd5e1;border-radius:18px;padding:28px;text-align:center;cursor:pointer;background:#f8fafc}.drop:hover{border-color:#60a5fa;background:#eff6ff}.muted{font-size:12px;color:#64748b;text-align:center;margin-top:14px;line-height:1.6}.hide{display:none}
     .spinner{width:38px;height:38px;border:4px solid #dbeafe;border-top-color:#1d4ed8;border-radius:50%;margin:0 auto;animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}@media(max-width:640px){.grid{grid-template-columns:1fr}.head{padding:24px 18px}.body{padding:22px 18px}.title{font-size:22px}}
   </style>
 </head>
 <body>
   <main class="wrap"><section class="card"><div class="head"><div class="logo">פנסיון מלא</div><h1 id="title" class="title">עדכון אמצעי תשלום</h1><p id="subtitle" class="sub">הקישור מאובטח ומיועד לעדכון אמצעי התשלום בלבד.</p></div><div id="body" class="body"><div class="spinner"></div></div></section></main>
-
   <script>
     const APP_BASE_URL = 'https://erp.pensionmale.co.il';
-    const $ = (id) => document.getElementById(id);
+    const $ = id => document.getElementById(id);
     const token = new URLSearchParams(location.search).get('token');
-    let sessionData = null;
-
     function endpoint(name){ return `${APP_BASE_URL}/functions/${name}`; }
     function setError(text){ $('body').innerHTML = `<div class="msg err">${text}</div>`; }
-    function setLoading(text='טוען...'){ $('body').innerHTML = `<div class="spinner"></div><p class="muted">${text}</p>`; }
     function esc(v){ return String(v || '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s])); }
-
     async function post(functionName, payload){
-      const res = await fetch(endpoint(functionName), {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify(payload)
-      });
+      const res = await fetch(endpoint(functionName), { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
       const data = await res.json().catch(() => ({}));
       if(!res.ok || data.success === false) throw new Error(data.error || 'הפעולה נכשלה');
       return data;
     }
-
     async function init(){
       if(!token) return setError('הקישור חסר טוקן אבטחה.');
       try{
         const data = await post('getPaymentSetupSession', { token });
-        sessionData = data;
         if(data.session.status === 'completed') return showSuccess(data.session.selected_method);
+        if(data.session.status === 'pending_approval') return showPending();
         const method = data.session.selected_method;
         $('title').textContent = `עדכון אמצעי תשלום - ${esc(data.session.company_name)}`;
-        $('subtitle').textContent = method === 'bank_debit' ? 'נא להשלים הרשאה לחיוב חשבון בהתאם לבחירתכם בטופס ההצטרפות.' : 'נא להזין פרטי כרטיס אשראי. פרטי האשראי עוברים ישירות לסאמיט ואינם נשמרים אצלנו.';
+        $('subtitle').textContent = method === 'bank_debit' ? 'נא להזין פרטי הרשאה לחיוב חשבון. לאחר השליחה הבקשה תישמר לבדיקה ואישור.' : 'נא להזין פרטי כרטיס אשראי. פרטי האשראי עוברים ישירות לסאמיט ואינם נשמרים אצלנו.';
         method === 'bank_debit' ? renderBankForm(data.session) : renderCreditForm(data.sumit);
       }catch(e){ setError(e.message || 'הקישור לא תקין או שפג תוקפו.'); }
     }
-
     function renderCreditForm(sumit){
-      $('body').innerHTML = `
-        <form id="ccForm" data-og="payment-form" method="post">
-          <div id="formError" class="msg err hide"></div><div class="og-errors msg err hide"></div>
-          <div class="grid">
-            <div class="field full"><label>מספר כרטיס</label><input data-og="cardnumber" inputmode="numeric" autocomplete="cc-number"></div>
-            <div class="field"><label>חודש תפוגה</label><input data-og="expirationmonth" maxlength="2" inputmode="numeric" autocomplete="cc-exp-month"></div>
-            <div class="field"><label>שנת תפוגה</label><input data-og="expirationyear" maxlength="4" inputmode="numeric" autocomplete="cc-exp-year"></div>
-            <div class="field"><label>CVV</label><input data-og="cvv" maxlength="4" inputmode="numeric" autocomplete="cc-csc"></div>
-            <div class="field"><label>ת.ז. בעל הכרטיס</label><input data-og="citizenid" inputmode="numeric"></div>
-          </div>
-          <button id="saveBtn" class="btn" type="submit" disabled>שמירת כרטיס אשראי מאובטחת</button>
-          <p class="muted">פרטי האשראי אינם נשמרים בפנסיון מלא — הם מועברים ישירות לסאמיט לצורך יצירת אמצעי תשלום.</p>
-        </form>`;
-      loadScript('https://code.jquery.com/jquery-3.7.1.min.js')
-        .then(() => loadScript('https://app.sumit.co.il/scripts/payments.js'))
-        .then(() => {
-          window.OfficeGuy.Payments.BindFormSubmit({
-            CompanyID: sumit.companyId,
-            APIPublicKey: sumit.apiPublicKey,
-            FormSelector: 'form[data-og="payment-form"]',
-            Callback: saveCreditCard
-          });
-          $('saveBtn').disabled = false;
-        })
-        .catch(() => showFormError('טעינת רכיב האשראי נכשלה. נא לרענן את העמוד ולנסות שוב.'));
+      $('body').innerHTML = `<form id="ccForm" data-og="payment-form" method="post"><div id="formError" class="msg err hide"></div><div class="og-errors msg err hide"></div><div class="grid"><div class="field full"><label>מספר כרטיס</label><input data-og="cardnumber" inputmode="numeric" autocomplete="cc-number"></div><div class="field"><label>חודש תפוגה</label><input data-og="expirationmonth" maxlength="2" inputmode="numeric" autocomplete="cc-exp-month"></div><div class="field"><label>שנת תפוגה</label><input data-og="expirationyear" maxlength="4" inputmode="numeric" autocomplete="cc-exp-year"></div><div class="field"><label>CVV</label><input data-og="cvv" maxlength="4" inputmode="numeric" autocomplete="cc-csc"></div><div class="field"><label>ת.ז. בעל הכרטיס</label><input data-og="citizenid" inputmode="numeric"></div></div><button id="saveBtn" class="btn" type="submit" disabled>שמירת כרטיס אשראי מאובטחת</button><p class="muted">פרטי האשראי אינם נשמרים בפנסיון מלא — הם מועברים ישירות לסאמיט לצורך יצירת אמצעי תשלום.</p></form>`;
+      loadScript('https://code.jquery.com/jquery-3.7.1.min.js').then(() => loadScript('https://app.sumit.co.il/scripts/payments.js')).then(() => { window.OfficeGuy.Payments.BindFormSubmit({ CompanyID: sumit.companyId, APIPublicKey: sumit.apiPublicKey, FormSelector: 'form[data-og="payment-form"]', Callback: saveCreditCard }); $('saveBtn').disabled = false; }).catch(() => showFormError('טעינת רכיב האשראי נכשלה. נא לרענן את העמוד ולנסות שוב.'));
     }
-
     async function saveCreditCard(singleUseToken){
       if(!singleUseToken) return showFormError('לא ניתן היה לאמת את פרטי האשראי.');
       const btn = $('saveBtn'); btn.disabled = true; btn.textContent = 'שומר...';
       try{ await post('updateSumitPaymentMethod', { token, single_use_token: singleUseToken }); showSuccess('credit_card'); }
       catch(e){ showFormError(e.message || 'שמירת אמצעי התשלום נכשלה.'); btn.disabled = false; btn.textContent = 'שמירת כרטיס אשראי מאובטחת'; }
     }
-
     function renderBankForm(s){
-      $('body').innerHTML = `
-        <div id="formError" class="msg err hide"></div>
-        <div class="grid">
-          <div class="field"><label>מספר בנק</label><input id="bank" value="${esc(s.bank_number)}" inputmode="numeric"></div>
-          <div class="field"><label>מספר סניף</label><input id="branch" value="${esc(s.branch_number)}" inputmode="numeric"></div>
-          <div class="field"><label>מספר חשבון</label><input id="account" value="${esc(s.account_number)}" inputmode="numeric"></div>
-        </div>
-        <label class="drop"><input id="file" type="file" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" hidden><strong id="fileText">לחצו לצירוף אסמכתת הרשאה לחיוב חשבון</strong><div class="muted">PDF או תמונה עד 10MB</div></label>
-        <button id="saveBank" class="btn green" disabled>אישור עדכון הרשאה לחיוב חשבון</button>`;
+      $('body').innerHTML = `<div id="formError" class="msg err hide"></div><div class="grid"><div class="field"><label>מספר בנק</label><input id="bank" value="${esc(s.bank_number)}" inputmode="numeric"></div><div class="field"><label>מספר סניף</label><input id="branch" value="${esc(s.branch_number)}" inputmode="numeric"></div><div class="field"><label>מספר חשבון</label><input id="account" value="${esc(s.account_number)}" inputmode="numeric"></div></div><label class="drop"><input id="file" type="file" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" hidden><strong id="fileText">לחצו לצירוף אסמכתת הרשאה לחיוב חשבון</strong><div class="muted">PDF או תמונה עד 10MB</div></label><button id="saveBank" class="btn green" disabled>שליחת הבקשה לאישור</button><p class="muted">הפרטים יישמרו לבדיקה. ההרשאה תופעל בסאמיט רק לאחר אישור פנימי.</p>`;
       let fileUrl = '';
-      $('file').onchange = async (e) => {
-        const file = e.target.files[0]; if(!file) return;
-        try{ fileUrl = await uploadFile(file); $('fileText').textContent = file.name; $('saveBank').disabled = false; }
-        catch(err){ showFormError(err.message); }
-      };
-      $('saveBank').onclick = async () => {
-        const payload = { token, bank_number:$('bank').value, branch_number:$('branch').value, account_number:$('account').value, reference_file_url:fileUrl };
-        if(!payload.bank_number || !payload.branch_number || !payload.account_number || !fileUrl) return showFormError('יש למלא פרטי בנק ולצרף אסמכתא.');
-        $('saveBank').disabled = true; $('saveBank').textContent = 'שומר...';
-        try{ await post('completeBankDebitSetup', payload); showSuccess('bank_debit'); }
-        catch(e){ showFormError(e.message || 'שמירת הרשאת החיוב נכשלה.'); $('saveBank').disabled = false; $('saveBank').textContent = 'אישור עדכון הרשאה לחיוב חשבון'; }
-      };
+      $('file').onchange = async e => { const file = e.target.files[0]; if(!file) return; try{ fileUrl = await uploadFile(file); $('fileText').textContent = file.name; $('saveBank').disabled = false; }catch(err){ showFormError(err.message); } };
+      $('saveBank').onclick = async () => { const payload = { token, bank_number:$('bank').value.trim(), branch_number:$('branch').value.trim(), account_number:$('account').value.trim(), reference_file_url:fileUrl }; if(!payload.bank_number || !payload.branch_number || !payload.account_number || !fileUrl) return showFormError('יש למלא פרטי בנק ולצרף אסמכתא.'); $('saveBank').disabled = true; $('saveBank').textContent = 'שולח לבדיקה...'; try{ await post('completeBankDebitSetup', payload); showPending(); }catch(e){ showFormError(e.message || 'שמירת הרשאת החיוב נכשלה.'); $('saveBank').disabled = false; $('saveBank').textContent = 'שליחת הבקשה לאישור'; } };
     }
-
     async function uploadFile(file){
       const allowed = ['application/pdf','image/jpeg','image/png','image/gif','image/webp'];
       if(!allowed.includes(file.type)) throw new Error('ניתן לצרף PDF או תמונה בלבד.');
@@ -123,14 +69,8 @@
       if(!res.ok || !data.file_url) throw new Error(data.error || 'שגיאה בהעלאת הקובץ.');
       return data.file_url;
     }
-
-    function showSuccess(method){
-      const label = method === 'bank_debit' ? 'הרשאה לחיוב חשבון' : 'כרטיס אשראי';
-      $('title').textContent = 'אמצעי התשלום עודכן בהצלחה';
-      $('subtitle').textContent = 'תודה, קיבלנו את העדכון.';
-      $('body').innerHTML = `<div class="msg ok"><h2>העדכון הושלם</h2><p>קיבלנו את עדכון ${label}. ניתן לסגור את החלון.</p></div>`;
-    }
-
+    function showPending(){ $('title').textContent = 'הבקשה התקבלה לבדיקה'; $('subtitle').textContent = 'תודה, קיבלנו את פרטי ההרשאה.'; $('body').innerHTML = `<div class="msg wait"><h2>ממתין לאישור</h2><p>הפרטים והאסמכתא נשמרו במערכת. ההרשאה תופעל בסאמיט רק לאחר בדיקה ואישור פנימי.</p></div>`; }
+    function showSuccess(method){ const label = method === 'bank_debit' ? 'הרשאה לחיוב חשבון' : 'כרטיס אשראי'; $('title').textContent = 'אמצעי התשלום עודכן בהצלחה'; $('subtitle').textContent = 'תודה, קיבלנו את העדכון.'; $('body').innerHTML = `<div class="msg ok"><h2>העדכון הושלם</h2><p>קיבלנו את עדכון ${label}. ניתן לסגור את החלון.</p></div>`; }
     function showFormError(text){ const el = $('formError'); if(el){ el.textContent = text; el.classList.remove('hide'); } }
     function loadScript(src){ return new Promise((ok, bad) => { if(document.querySelector(`script[src="${src}"]`)) return ok(); const s=document.createElement('script'); s.src=src; s.onload=ok; s.onerror=bad; document.body.appendChild(s); }); }
     init();
