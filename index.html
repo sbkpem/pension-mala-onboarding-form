@@ -421,7 +421,10 @@ function val(id) { return document.getElementById(id)?.value?.trim() || ''; }
 
 function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
 function isValidBusinessId(id) { return /^\d{9}$/.test(id); }
-function isValidPhone(p) { return /^0\d{9}$/.test(p.replace(/[-\s]/g, '')); }
+function isValidPhone(p) {
+    const cleanPhone = p.replace(/[-\s]/g, '');
+    return /^0\d{8,9}$/.test(cleanPhone);
+}
 function isValidIsraeliId(id) {
     if (!id || !/^\d{5,9}$/.test(id)) return false;
     const p = id.padStart(9, '0');
@@ -523,7 +526,7 @@ function validateCurrentStep() {
                 showError('יש למלא את כל שדות החובה בעמוד זה'); return false;
             }
             if (!isValidBusinessId(val('business_id'))) { showError('מספר ח.פ. לא תקין - נדרשים 9 ספרות'); return false; }
-            if (!isValidPhone(val('phone'))) { showError('מספר טלפון לא תקין - נדרשות 10 ספרות המתחילות ב-0'); return false; }
+if (!isValidPhone(val('phone'))) { showError('מספר טלפון לא תקין - יש להזין 9 או 10 ספרות המתחילות ב-0'); return false; }
             if (!val('has_masav_code')) { showError('יש לבחור האם קיים קוד מוסד במס"ב'); return false; }
             if (val('has_masav_code') === 'yes' && (!val('institution_code') || !val('institution_name'))) {
                 showError('יש למלא את שדות קוד מוסד ושם מוסד במס"ב'); return false;
