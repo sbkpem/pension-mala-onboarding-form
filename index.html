@@ -412,6 +412,8 @@
 <script>
 const WEBHOOK_URL = 'https://pension-flow-79c43c9f.base44.app/api/apps/684b22e06236d9fe79c43c9f/functions/onboardingWebhook';
 const UPLOAD_URL = 'https://pension-flow-79c43c9f.base44.app/api/apps/684b22e06236d9fe79c43c9f/functions/onboardingFileUpload';
+    const urlParams = new URLSearchParams(window.location.search);
+const invitationToken = urlParams.get('invitation') || urlParams.get('invitation_token') || '';
 
 let currentStep = 1;
 let authorizationFileUrl = '';
@@ -637,6 +639,7 @@ async function submitForm() {
         signer_2_email: val('signer_2_email'),
         payment_choice: val('payment_choice'),
         authorization_file_url: authorizationFileUrl,
+        invitation_token: invitationToken || undefined,
     };
 
     try {
