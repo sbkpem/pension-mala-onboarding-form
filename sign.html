@@ -1,3 +1,7 @@
+// THIS IS NOT A REACT COMPONENT - Contains the full HTML for the external GitHub Pages signing page.
+// Copy the HTML below and paste it into sign.html on GitHub Pages.
+
+export const EXTERNAL_SIGNING_HTML = `
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -29,14 +33,50 @@
         .doc-item { border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 0.75rem; overflow: hidden; }
         .doc-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; cursor: pointer; background: #fafafa; }
         .doc-header:hover { background: #f3f4f6; }
-        .doc-content { max-height: 400px; overflow-y: auto; padding: 1.5rem; border-top: 1px solid #e5e7eb; direction: rtl; line-height: 1.8; background: #ffffff; }
+        .doc-content { max-height: 400px; overflow-y: auto; padding: 1.5rem; border-top: 1px solid #e5e7eb; direction: rtl; line-height: 1.45; background: #ffffff; }
+        .doc-content-inner { max-width: 794px; margin: 0 auto; background: white; }
         .doc-content h1, .doc-content h2, .doc-content h3 { color: #1e3a5f; font-weight: 700; }
         .doc-content h1 { font-size: 1.5rem; text-align: center; border-bottom: 2px solid #3b82f6; padding-bottom: 0.5em; }
         .doc-content h2 { font-size: 1.2rem; background: linear-gradient(to left, #e0e7ff, #f8fafc); padding: 0.5em 1em; border-radius: 4px; border-right: 4px solid #3b82f6; }
-        .doc-content .ql-align-center { text-align: center; }
-        .doc-content .ql-align-right { text-align: right; }
-        .doc-content .ql-align-left { text-align: left; }
-        .doc-content .ql-align-justify { text-align: justify; }
+        .doc-content p { margin-bottom: 1em; }
+        .doc-content strong { color: #1e3a5f; }
+        .doc-content .ql-align-center { text-align: center !important; }
+        .doc-content .ql-align-right { text-align: right !important; }
+        .doc-content .ql-align-left { text-align: left !important; }
+        .doc-content .ql-align-justify { text-align: justify !important; }
+        .doc-content blockquote {
+            border-right: 4px solid #3b82f6;
+            padding-right: 1em;
+            margin: 1em 0;
+            background: #f8fafc;
+            padding: 1em;
+            border-radius: 4px;
+            text-align: right;
+        }
+        .doc-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
+        }
+        .doc-content table td,
+        .doc-content table th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .doc-content img {
+            max-width: 100%;
+            height: auto;
+        }
+        .doc-content .ql-columns {
+            column-gap: 2rem;
+            width: 100%;
+            direction: rtl;
+            text-align: right;
+            display: block;
+        }
+        .doc-content .ql-columns[data-columns="2"] { column-count: 2; }
+        .doc-content .ql-columns[data-columns="3"] { column-count: 3; }
+        .doc-content .ql-columns[data-columns="4"] { column-count: 4; }
         .doc-footer { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-top: 1px solid #e5e7eb; background: #f9fafb; }
 
         .badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; }
@@ -96,7 +136,7 @@
         </div>
         <h2 style="font-size:1.25rem;color:#111827;margin-bottom:0.5rem;">שגיאה</h2>
         <p id="errorMessage" style="color:#6b7280;margin-bottom:0.5rem;"></p>
-        <p style="font-size:0.8rem;color:#9ca3af;">אנא נסה שוב או פנה לתמיכה</p>
+        <p style="font-size:0.8rem;color:#9ca3af;">ניתן לסגור עמוד זה בבטחה</p>
     </div>
 
     <!-- Success -->
@@ -265,7 +305,8 @@ async function logSigningEvent(eventType, status = 'success', errorMessage = nul
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                submission_id: state.submissionId,
+                onboarding_submission_id: state.submissionId,
+                token: state.token,
                 event_type: eventType,
                 status: status,
                 error_message: errorMessage,
@@ -295,6 +336,13 @@ async function loadDocuments() {
         const data = await res.json();
         
         if (!data.success) {
+            if (data.code === 'already_signed') {
+                hide('loadingScreen');
+                document.getElementById('successTitle').textContent = data.allSignaturesComplete ? 'כל המסמכים כבר נחתמו בהצלחה!' : 'חתימתך כבר נשמרה בהצלחה!';
+                document.getElementById('successMessage').textContent = data.error || 'אין צורך לחתום שוב על המסמכים.';
+                show('successScreen');
+                return;
+            }
             logSigningEvent('error_occurred', 'failure', data.error || 'שגיאה בטעינת המסמכים');
             showError(data.error || 'שגיאה בטעינת המסמכים');
             return;
@@ -345,7 +393,7 @@ function renderReviewStep() {
         var contentDiv = document.createElement('div');
         contentDiv.className = 'doc-content hidden';
         contentDiv.id = 'content-' + doc.id;
-        contentDiv.innerHTML = htmlContent;
+        contentDiv.innerHTML = '<div class="doc-content-inner">' + htmlContent + '</div>';
 
         var footerDiv = document.createElement('div');
         footerDiv.className = 'doc-footer hidden';
@@ -704,3 +752,8 @@ function hide(id) { document.getElementById(id)?.classList.add('hidden'); }
 </script>
 </body>
 </html>
+`;
+
+export default function ExternalSigningHTML() {
+  return null;
+}
