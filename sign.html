@@ -1,3 +1,7 @@
+// THIS IS NOT A REACT COMPONENT - Contains the full HTML for the external GitHub Pages signing page.
+// Copy the HTML below and paste it into sign.html on GitHub Pages.
+
+export const EXTERNAL_SIGNING_HTML = `
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -132,7 +136,7 @@
         </div>
         <h2 style="font-size:1.25rem;color:#111827;margin-bottom:0.5rem;">שגיאה</h2>
         <p id="errorMessage" style="color:#6b7280;margin-bottom:0.5rem;"></p>
-        <p style="font-size:0.8rem;color:#9ca3af;">ניתן לסגור עמוד זה בבטחה</p>
+        <p style="font-size:0.8rem;color:#9ca3af;">אנא נסה שוב או פנה לתמיכה</p>
     </div>
 
     <!-- Success -->
@@ -748,3 +752,8 @@ function hide(id) { document.getElementById(id)?.classList.add('hidden'); }
 </script>
 </body>
 </html>
+`;
+
+export default function ExternalSigningHTML() {
+  return null;
+}
