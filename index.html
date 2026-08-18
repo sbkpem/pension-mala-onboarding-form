@@ -668,6 +668,50 @@ async function submitForm() {
         btn.innerHTML = '✓ שלח טופס';
     }
 }
+
+const DRAFT_URL='https://pension-flow-79c43c9f.base44.app/api/apps/684b22e06236d9fe79c43c9f/functions/onboardingDraft';
+const DRAFT_FIELDS=['company_name','business_id','address','phone','deductions_file_number','has_masav_code','institution_code','institution_name','payment_method_to_funds','bank_name','bank_branch_number','bank_account_number','salary_start_month','main_contact_name','main_contact_role','main_contact_phone','main_contact_email','payroll_contact_name','payroll_contact_email','payroll_contact_phone','invoice_email','signature_structure','signer_1_name','signer_1_id','signer_1_email','signer_2_name','signer_2_id','signer_2_email','payment_choice','authorization_file_url'];
+let draftReady=false,draftEnabled=true,draftTimer=null,draftQueue=Promise.resolve();
+function draftData(){const data={};DRAFT_FIELDS.forEach(function(field){data[field]=field==='authorization_file_url'?authorizationFileUrl:val(field);});return data;}
+async function draftRequest(payload){
+ const res=await fetch(DRAFT_URL,{method:'POST',headers:{'Content-Type':'application/json','X-Onboarding-Token':invitationToken},body:JSON.stringify(Object.assign({invitation_token:invitationToken},payload))});
+ const data=await res.json().catch(function(){return {};});
+ if(!res.ok||data.success===false)throw new Error(data.error||'שמירת הטיוטה נכשלה');
+ return data;
+}
+function saveDraft(){
+ if(!draftReady||!draftEnabled||!invitationToken)return Promise.resolve();
+ return draftRequest({action:'save',current_step:currentStep,form_data:draftData()}).catch(function(error){console.error('Draft save failed:',error);});
+}
+function scheduleDraftSave(immediate){
+ clearTimeout(draftTimer);
+ draftTimer=setTimeout(function(){draftQueue=draftQueue.then(saveDraft);},immediate?0:700);
+}
+function showRestoredFile(){
+ if(!authorizationFileUrl)return;
+ const area=document.getElementById('fileUploadArea'),text=document.getElementById('fileUploadText'),hint=document.getElementById('fileUploadHint');
+ area.classList.add('uploaded');area.onclick=null;text.textContent='✓ הקובץ השמור נטען';text.style.color='#16a34a';text.style.fontWeight='600';hint.textContent='אישור מורשי חתימה שמור';
+ if(!area.querySelector('.file-replace-btn'))hint.insertAdjacentHTML('afterend','<button class="file-replace-btn" onclick="resetFileUpload(event)">החלף קובץ</button>');
+}
+async function loadDraft(){
+ if(!invitationToken){showError('קישור הטופס אינו תקין או שפג תוקפו');return;}
+ try{
+  const saved=await draftRequest({action:'load'}),data=saved.form_data||{};
+  DRAFT_FIELDS.forEach(function(field){if(field==='authorization_file_url')return;const element=document.getElementById(field);if(element&&data[field]!==undefined)element.value=data[field];});
+  authorizationFileUrl=data.authorization_file_url||'';currentStep=Math.max(1,Math.min(4,Number(saved.current_step)||1));
+  toggleMasavFields();toggleSigner2();showRestoredFile();updateUI();draftReady=true;
+ }catch(error){draftEnabled=false;showError(error.message||'לא ניתן לטעון את הטיוטה');}
+}
+const originalNextStep=nextStep;nextStep=function(){originalNextStep();scheduleDraftSave(true);};
+const originalPrevStep=prevStep;prevStep=function(){originalPrevStep();scheduleDraftSave(true);};
+const originalFileSelect=handleFileSelect;handleFileSelect=async function(event){await originalFileSelect(event);scheduleDraftSave(true);};
+const originalResetFile=resetFileUpload;resetFileUpload=function(event){originalResetFile(event);scheduleDraftSave(true);};
+const originalSubmitForm=submitForm;submitForm=async function(){clearTimeout(draftTimer);await originalSubmitForm();if(!document.getElementById('successScreen').classList.contains('hidden'))draftEnabled=false;};
+document.addEventListener('DOMContentLoaded',function(){
+ document.querySelectorAll('#mainForm input:not([type="file"]),#mainForm select').forEach(function(element){element.addEventListener('input',function(){scheduleDraftSave(false);});element.addEventListener('change',function(){scheduleDraftSave(false);});});
+ loadDraft();
+});
+
 </script>
 
 </body>
