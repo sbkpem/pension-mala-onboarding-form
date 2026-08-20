@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>אישור הצעת מחיר - פנסיון מלא</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:#eef5f6;color:#18354b;font-family:Tahoma,Arial,sans-serif}
+    .card{width:min(520px,100%);overflow:hidden;border:1px solid #cfe1e4;border-radius:18px;background:#fff;box-shadow:0 18px 55px rgba(22,61,82,.14)}
+    .bar{height:8px;background:#36b9b9}.head{padding:28px 24px 20px;text-align:center;background:#f7fbfc;border-bottom:1px solid #e1ecef}
+    .logo{width:205px;max-width:58%;height:auto}.body{padding:36px 28px 40px;text-align:center}.icon{width:66px;height:66px;margin:0 auto 20px;display:grid;place-items:center;border-radius:50%;font-size:34px;font-weight:700}
+    .loading{border:5px solid #dce9eb;border-top-color:#177f83;animation:spin .8s linear infinite}.ok{background:#e0f5f4;color:#177f83}.warn{background:#fff7df;color:#a16207}.bad{background:#feecec;color:#c52e2e}
+    h1{margin:0 0 12px;color:#173f63;font-size:25px;line-height:1.4}p{margin:0;color:#607b8c;font-size:16px;line-height:1.75}.footer{padding:15px;text-align:center;background:#173f63;color:#c4d7e3;font-size:12px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+  <main class="card"><div class="bar"></div><header class="head"><img class="logo" src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/684b22e06236d9fe79c43c9f/844a472d9____jpg-removebg-preview.png" alt="פנסיון מלא"></header><section id="content" class="body"><div class="icon loading"></div><h1>מאשרים את ההצעה...</h1><p>נא להמתין מספר רגעים.</p></section><footer class="footer">פנסיון מלא · תפעול פנסיוני שעובד בשבילך</footer></main>
+  <script>
+    const ENDPOINT='https://pension-flow-79c43c9f.base44.app/api/apps/684b22e06236d9fe79c43c9f/functions/approvePriceQuote';
+    const content=document.getElementById('content');
+    const screens={
+      approved:['ok','✓','הצעת המחיר אושרה','קישור להשלמת ההצטרפות נשלח אליך באימייל.'],
+      already_approved:['ok','✓','הצעת המחיר כבר אושרה','קישור להשלמת ההצטרפות כבר נשלח אליך באימייל.'],
+      expired:['warn','!','תוקף ההצעה הסתיים','ניתן לפנות אלינו לקבלת הצעה מעודכנת.'],
+      invalid:['bad','×','לא ניתן לאשר את ההצעה','הקישור אינו תקין. ניתן לפנות אלינו לקבלת סיוע.'],
+      error:['bad','×','לא ניתן לאשר את ההצעה','אירעה שגיאה זמנית. נא לנסות שוב בעוד מספר דקות.']
+    };
+    function show(state){const s=screens[state]||screens.error;content.innerHTML='<div class="icon '+s[0]+'">'+s[1]+'</div><h1>'+s[2]+'</h1><p>'+s[3]+'</p>'}
+    async function approve(){
+      const token=new URLSearchParams(location.search).get('token');
+      if(!token)return show('invalid');
+      try{const response=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token})});const data=await response.json();show(data.status||'error')}catch{show('error')}
+    }
+    approve();
+  </script>
+</body>
+</html>
