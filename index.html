@@ -475,7 +475,7 @@ async function handleFileSelect(event) {
         formData.append('file', file);
         formData.append('invitation', invitationToken);
 
-        const res = await fetch(UPLOAD_URL, {
+        const res = await fetch(UPLOAD_URL + '?invitation=' + encodeURIComponent(invitationToken), {
             method: 'POST',
             body: formData
         });
