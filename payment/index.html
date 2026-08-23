@@ -66,7 +66,7 @@
       if(!allowed.includes(file.type)) throw new Error('ניתן לצרף PDF או תמונה בלבד.');
       if(file.size > 10 * 1024 * 1024) throw new Error('גודל הקובץ חייב להיות עד 10MB.');
       const fd = new FormData(); fd.append('file', file);
-      const res = await fetch(endpoint('onboardingFileUpload'), { method:'POST', body:fd });
+      const res = await fetch(`${endpoint('onboardingFileUpload')}?token=${encodeURIComponent(token)}`, { method:'POST', body:fd });
       const data = await res.json().catch(() => ({}));
       if(!res.ok || !data.file_url) throw new Error(data.error || 'שגיאה בהעלאת הקובץ.');
       return data.file_url;
