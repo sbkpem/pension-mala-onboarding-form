@@ -39,7 +39,7 @@
         if(data.session.status === 'pending_approval') return showPending();
         const method = data.session.selected_method;
         $('title').textContent = `עדכון אמצעי תשלום - ${data.session.company_name || ''}`;
-        $('subtitle').textContent = method === 'bank_debit' ? 'נא להזין פרטי הרשאה לחיוב חשבון. לאחר השליחה הפרטים יועברו לבדיקה.' : 'נא להזין פרטי כרטיס אשראי. פרטי האשראי מועברים באופן מאובטח ואינם נשמרים אצלנו.';
+        $('subtitle').textContent = method === 'bank_debit' ? 'נא להקים בבנק הרשאה לחיוב חשבון עבור קוד מוסד 07256, ולאחר מכן להזין את פרטי ההרשאה ולצרף אסמכתא. הפרטים יועברו לבדיקה.' : 'נא להזין פרטי כרטיס אשראי. פרטי האשראי מועברים באופן מאובטח ואינם נשמרים אצלנו.';
         method === 'bank_debit' ? renderBankForm(data.session) : renderCreditForm(data.sumit);
       }catch(e){ setError(e.message || 'הקישור לא תקין או שפג תוקפו.'); }
     }
