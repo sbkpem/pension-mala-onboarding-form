@@ -420,6 +420,22 @@ const stepTitles = ['פרטי החברה', 'אנשי קשר', 'פרטי תשלו
 
 function val(id) { return document.getElementById(id)?.value?.trim() || ''; }
 
+
+function bankAccountValid(bankValue, branchValue, accountValue) {
+    const digits=(v,n)=>String(v).padStart(n,'0').slice(-n).split('').reverse().map(Number);
+    const dot=(a,w)=>a.reduce((s,v,i)=>s+v*(w[i]||0),0), has=(a,v)=>a.includes(v);
+    const bank=Number(bankValue), original=Number(branchValue), branch=bank===20&&original>400?original-400:original, a=digits(accountValue,9), b=digits(branch,3); let sum;
+    if(bank===54)return true;
+    if(has([10,13,34],bank)){sum=dot(a.slice(0,8),[1,10,2,3,4,5,6,7])+dot(b,[8,9,10]);return has([90,72,70,60,20],sum%100)}
+    if(has([4,12,20],bank)){sum=dot(a.slice(0,6),[1,2,3,4,5,6])+dot(b,[7,8,9]);return has(bank===4?[0,2]:bank===12?[0,2,4,6]:[0,2,4],sum%11)}
+    if(has([11,17],bank))return has([0,2,4],dot(a,[1,2,3,4,5,6,7,8,9])%11);
+    if(has([31,52],bank))return has([0,6],dot(a,[1,2,3,4,5,6,7,8,9])%11)||has([0,6],dot(a.slice(0,6),[1,2,3,4,5,6])%11);
+    if(bank===9)return dot(a,[1,2,3,4,5,6,7,8,9])%10===0;
+    if(has([14,46],bank)){sum=dot(a.slice(0,6),[1,2,3,4,5,6])+dot(b,[7,8,9]);return sum%11===0||dot(a,[1,2,3,4,5,6,7,8,9])%11===0||dot(a.slice(0,6),[1,2,3,4,5,6])%11===0}
+    return false;
+}
+function confirmBankDetails(){return new Promise(resolve=>{const m=document.createElement('div');m.style='position:fixed;inset:0;background:#0f172a99;display:flex;align-items:center;justify-content:center;padding:20px;z-index:9999';m.innerHTML='<div style="max-width:460px;background:white;border-radius:16px;padding:24px"><h2>בדיקת פרטי חשבון</h2><p style="margin:14px 0">נראה שהפרטים שהזנת שגויים, האם אתה בטוח שהם תקינים? אם כן לחץ על המשך</p><div style="display:flex;gap:10px"><button id="bankContinue" class="btn btn-success">המשך</button><button id="bankEdit" class="btn btn-outline">חזרה לעריכה</button></div></div>';document.body.appendChild(m);m.querySelector('#bankContinue').onclick=()=>{m.remove();resolve(true)};m.querySelector('#bankEdit').onclick=()=>{m.remove();resolve(false)}})}
+
 function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
 function isValidBusinessId(id) { return /^\d{9}$/.test(id); }
 function isValidPhone(p) { return /^0\d{9}$/.test(p.replace(/[-\s]/g, '')); }
@@ -586,8 +602,12 @@ function updateUI() {
     hideError();
 }
 
-function nextStep() {
-    if (validateCurrentStep() && currentStep < 4) { currentStep++; updateUI(); }
+async function nextStep() {
+    if (!validateCurrentStep() || currentStep >= 4) return;
+    if (currentStep === 3 && !bankAccountValid(val('bank_name'), val('bank_branch_number'), val('bank_account_number'))) {
+        if (!await confirmBankDetails()) return;
+    }
+    currentStep++; updateUI();
 }
 function prevStep() {
     if (currentStep > 1) { currentStep--; updateUI(); }
