@@ -28,7 +28,7 @@
     async function post(functionName, payload){
       const res = await fetch(endpoint(functionName), { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
       const data = await res.json().catch(() => ({}));
-      if(!res.ok || data.success === false) throw new Error(data.error || 'הפעולה נכשלה');
+      if(!res.ok || data.success === false){ const error=new Error(data.error || 'הפעולה נכשלה'); error.code=data.error_code; throw error; }
       return data;
     }
     async function init(){
@@ -55,11 +55,27 @@
       try{ await post('updateSumitPaymentMethod', { token, single_use_token: singleUseToken }); showSuccess('credit_card'); }
       catch(e){ showFormError(e.message || 'עדכון אמצעי התשלום נכשל.'); btn.disabled = false; btn.textContent = 'עדכון כרטיס אשראי מאובטח'; }
     }
+    
+function bankAccountValid(bankValue, branchValue, accountValue) {
+    const digits=(v,n)=>String(v).padStart(n,'0').slice(-n).split('').reverse().map(Number);
+    const dot=(a,w)=>a.reduce((s,v,i)=>s+v*(w[i]||0),0), has=(a,v)=>a.includes(v);
+    const bank=Number(bankValue), original=Number(branchValue), branch=bank===20&&original>400?original-400:original, a=digits(accountValue,9), b=digits(branch,3); let sum;
+    if(bank===54)return true;
+    if(has([10,13,34],bank)){sum=dot(a.slice(0,8),[1,10,2,3,4,5,6,7])+dot(b,[8,9,10]);return has([90,72,70,60,20],sum%100)}
+    if(has([4,12,20],bank)){sum=dot(a.slice(0,6),[1,2,3,4,5,6])+dot(b,[7,8,9]);return has(bank===4?[0,2]:bank===12?[0,2,4,6]:[0,2,4],sum%11)}
+    if(has([11,17],bank))return has([0,2,4],dot(a,[1,2,3,4,5,6,7,8,9])%11);
+    if(has([31,52],bank))return has([0,6],dot(a,[1,2,3,4,5,6,7,8,9])%11)||has([0,6],dot(a.slice(0,6),[1,2,3,4,5,6])%11);
+    if(bank===9)return dot(a,[1,2,3,4,5,6,7,8,9])%10===0;
+    if(has([14,46],bank)){sum=dot(a.slice(0,6),[1,2,3,4,5,6])+dot(b,[7,8,9]);return sum%11===0||dot(a,[1,2,3,4,5,6,7,8,9])%11===0||dot(a.slice(0,6),[1,2,3,4,5,6])%11===0}
+    return false;
+}
+function confirmBankDetails(){return new Promise(resolve=>{const m=document.createElement('div');m.style='position:fixed;inset:0;background:#0f172a99;display:flex;align-items:center;justify-content:center;padding:20px;z-index:9999';m.innerHTML='<div style="max-width:460px;background:white;border-radius:16px;padding:24px"><h2>בדיקת פרטי חשבון</h2><p style="margin:14px 0">נראה שהפרטים שהזנת שגויים, האם אתה בטוח שהם תקינים? אם כן לחץ על המשך</p><div style="display:flex;gap:10px"><button id="bankContinue" class="btn btn-success">המשך</button><button id="bankEdit" class="btn btn-outline">חזרה לעריכה</button></div></div>';document.body.appendChild(m);m.querySelector('#bankContinue').onclick=()=>{m.remove();resolve(true)};m.querySelector('#bankEdit').onclick=()=>{m.remove();resolve(false)}})}
+
     function renderBankForm(s){
       $('body').innerHTML = `<div id="formError" class="msg err hide"></div><div class="grid"><div class="field"><label>מספר בנק</label><input id="bank" value="${esc(s.bank_number)}" inputmode="numeric"></div><div class="field"><label>מספר סניף</label><input id="branch" value="${esc(s.branch_number)}" inputmode="numeric"></div><div class="field"><label>מספר חשבון</label><input id="account" value="${esc(s.account_number)}" inputmode="numeric"></div></div><label class="drop"><input id="file" type="file" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" hidden><strong id="fileText">לחצו לצירוף אסמכתת הרשאה לחיוב חשבון</strong><div class="muted">PDF או תמונה עד 10MB</div></label><button id="saveBank" class="btn green" disabled>שליחת פרטי ההרשאה</button><p class="muted">הפרטים יישמרו במערכת ויועברו לבדיקה.</p>`;
       let fileUrl = '';
       $('file').onchange = async e => { const file = e.target.files[0]; if(!file) return; try{ fileUrl = await uploadFile(file); $('fileText').textContent = file.name; $('saveBank').disabled = false; }catch(err){ showFormError(err.message); } };
-      $('saveBank').onclick = async () => { const payload = { token, bank_number:$('bank').value.trim(), branch_number:$('branch').value.trim(), account_number:$('account').value.trim(), reference_file_url:fileUrl }; if(!payload.bank_number || !payload.branch_number || !payload.account_number || !fileUrl) return showFormError('יש למלא פרטי בנק ולצרף אסמכתא.'); $('saveBank').disabled = true; $('saveBank').textContent = 'שולח...'; try{ await post('completeBankDebitSetup', payload); showPending(); }catch(e){ showFormError(e.message || 'שמירת הרשאת החיוב נכשלה.'); $('saveBank').disabled = false; $('saveBank').textContent = 'שליחת פרטי ההרשאה'; } };
+      $('saveBank').onclick = async () => { const payload = { token, bank_number:$('bank').value.trim(), branch_number:$('branch').value.trim(), account_number:$('account').value.trim(), reference_file_url:fileUrl }; if(!payload.bank_number || !payload.branch_number || !payload.account_number || !fileUrl) return showFormError('יש למלא פרטי בנק ולצרף אסמכתא.'); if(!bankAccountValid(payload.bank_number,payload.branch_number,payload.account_number)){if(!await confirmBankDetails())return;payload.bank_details_confirmed=true} $('saveBank').disabled = true; $('saveBank').textContent = 'שולח...'; try{ await post('completeBankDebitSetup', payload); showPending(); }catch(e){ showFormError(e.message || 'שמירת הרשאת החיוב נכשלה.'); $('saveBank').disabled = false; $('saveBank').textContent = 'שליחת פרטי ההרשאה'; } };
     }
     async function uploadFile(file){
       const allowed = ['application/pdf','image/jpeg','image/png','image/gif','image/webp'];
@@ -74,7 +90,7 @@
     function showPending(){ $('title').textContent = 'פרטי ההרשאה נקלטו בהצלחה'; $('subtitle').textContent = ''; $('body').innerHTML = `<div class="msg ok"><h2>תודה!</h2><p>פרטי ההרשאה לחיוב חשבון נקלטו בהצלחה והועברו לבדיקה.</p></div>`; }
     function showSuccess(method){ const label = method === 'bank_debit' ? 'הרשאה לחיוב חשבון' : 'כרטיס אשראי'; $('title').textContent = 'אמצעי התשלום עודכן בהצלחה'; $('subtitle').textContent = 'תודה, קיבלנו את העדכון.'; $('body').innerHTML = `<div class="msg ok"><h2>העדכון הושלם</h2><p>קיבלנו את עדכון ${label}. ניתן לסגור את החלון.</p></div>`; }
     function showFormError(text){ const el = $('formError'); if(el){ el.textContent = text; el.classList.remove('hide'); } }
-    function loadScript(src){ return new Promise((ok, bad) => { if(document.querySelector(`script[src="${src}"]`)) return ok(); const s=document.createElement('script'); s.src=src; s.onload=ok; s.onerror=bad; document.body.appendChild(s); }); }
+    function loadScript(src){ return new Promise((ok, bad) => { if(document.querySelector(`script[src="${src}"]`)) return ok(); const s=document.createElement('script'); s.src=src; if(src.includes('jquery-3.7.1')){s.integrity='sha384-1H217gwSVyLSIfaLxHbE7dRb3v4mYCKbpQvzx0cegeju1MVsGrX5xXxAvs/HgeFs';s.crossOrigin='anonymous'} s.onload=ok; s.onerror=bad; document.body.appendChild(s); }); }
     init();
   </script>
 </body>
