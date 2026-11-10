@@ -521,7 +521,7 @@ async function handleFileSelect(event) {
             throw new Error(result.error || 'שגיאה בהעלאה');
         }
     } catch (err) {
-        D.failed(diagStatus, diagParsed, err && err.message);
+        D.failed(diagStatus, diagParsed, err && err.message, err && err.name);
         console.error('Upload error:', err);
         textEl.textContent = 'לחצו כאן להעלאת קובץ';
         hintEl.textContent = 'PDF או תמונה (עד 10MB)';
