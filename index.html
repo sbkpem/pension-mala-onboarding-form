@@ -409,6 +409,7 @@
     </div>
 </div>
 
+<script src="diagnostics.js" async></script>
 <script>
 const WEBHOOK_URL = 'https://pension-flow-79c43c9f.base44.app/api/apps/684b22e06236d9fe79c43c9f/functions/onboardingWebhook';
 const UPLOAD_URL = 'https://pension-flow-79c43c9f.base44.app/api/apps/684b22e06236d9fe79c43c9f/functions/onboardingFileUpload';
@@ -465,14 +466,18 @@ function hideError() { document.getElementById('errorBox').classList.add('hidden
 async function handleFileSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
+    const D = window.pfDiag || { start: function(){}, log: function(){}, failed: function(){} };
+    D.start(file);
 
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
+        D.log('client_validation_failed', { outcome: 'failure', error_category: 'invalid_file_type' });
         alert('ניתן להעלות רק קבצי PDF או תמונה (JPG, PNG)');
         event.target.value = '';
         return;
     }
     if (file.size > 10 * 1024 * 1024) {
+        D.log('client_validation_failed', { outcome: 'failure', error_category: 'file_too_large' });
         alert('גודל הקובץ חייב להיות עד 10MB');
         event.target.value = '';
         return;
@@ -485,19 +490,25 @@ async function handleFileSelect(event) {
     textEl.textContent = 'מעלה קובץ...';
     hintEl.textContent = '';
 
+    let diagStatus = null, diagParsed = false;
     try {
+        if (!invitationToken) D.log('client_validation_failed', { outcome: 'failure', error_category: 'missing_invitation' });
         if (!invitationToken) throw new Error('קישור ההעלאה אינו תקין או שפג תוקפו');
         const formData = new FormData();
         formData.append('file', file);
         formData.append('invitation', invitationToken);
 
+        D.log('upload_started', { outcome: 'info' });
         const res = await fetch(UPLOAD_URL + '?invitation=' + encodeURIComponent(invitationToken), {
             method: 'POST',
             body: formData
         });
+        diagStatus = res.status;
         const result = await res.json();
+        diagParsed = true;
         
         if (result.file_url) {
+            D.log('upload_succeeded', { outcome: 'success', http_status: diagStatus });
             authorizationFileUrl = result.file_url;
             area.classList.add('uploaded');
             area.onclick = null;
@@ -510,6 +521,7 @@ async function handleFileSelect(event) {
             throw new Error(result.error || 'שגיאה בהעלאה');
         }
     } catch (err) {
+        D.failed(diagStatus, diagParsed, err && err.message);
         console.error('Upload error:', err);
         textEl.textContent = 'לחצו כאן להעלאת קובץ';
         hintEl.textContent = 'PDF או תמונה (עד 10MB)';
